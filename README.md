@@ -22,9 +22,11 @@ Great for generating boilerplate code or getting started on something.
 ![Example Chat ](images/Example1.PNG)
 
 Single and multiline support.
+---
 ![Example of Multiline Input](images/ExampleMulti.PNG)
 
 Very Handy in the terminal window in VsCode.
+---
 ![Very handy in vscode](images/vscode.PNG)
 
 
