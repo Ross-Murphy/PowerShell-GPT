@@ -27,8 +27,8 @@ Single and multiline support.
 
 Very Handy in the terminal window in VsCode.
 ---
+![Very handy in vscode](images/vscode2.PNG)
 ![Very handy in vscode](images/vscode.PNG)
-
 
 
 How to use ?
