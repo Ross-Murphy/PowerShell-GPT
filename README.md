@@ -8,12 +8,12 @@ https://github.com/Ross-Murphy/PowerShell-GPT
 What is this?
 ---
 This started off as a way to have a simple coding and virtual assistant inside VSCode or in my other PowerShell task windows. 
-I did not initially find an extension for VsCode to my liking. Also I thought it would be fun to code something like this. 
+I did not initially find an extension for VsCode to my liking. Also I thought it would be fun to code something like this and it only took a few hours of innovation time. 
 
 What's Next
 ---
-There are several other PowerShell GPT API scripts out there and honestly if I had found them first I may not have started this at all. I've not looked at them in depth and I may like to borrow some of their ideas.
-I would like to add some ability for the chat to interact with the shell in a limited capacity. 
+There are several other PowerShell OpenAI ChatGPT API scripts out there and honestly if I had found them first I may not have started this at all, however it was fun and I like the simplicity it all. This needs to become a proper module if it's to be distributed as a project. 
+Eventaully I would like to add some ability for the chat to interact with the shell in a limited capacity. 
 
 
 ### Examples
