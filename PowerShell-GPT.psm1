@@ -3,33 +3,18 @@
 # MIT License
 # https://platform.openai.com/docs/api-reference
 #
-# You can set the API key as an environment var or however you like
-# $Env:API_KEY = 'sk-OPEN-API-KEY'
-$api_key = $Env:API_KEY
-# https://platform.openai.com/account/api-keys
-
-# Set the API endpoint and headers
-# https://platform.openai.com/docs/models/model-endpoint-compatibility
-$endpoint = "https://api.openai.com/v1/chat/completions" 
-$model = 'gpt-3.5-turbo' #  
-
-# Setup Messages Array
-$global:messages = New-Object System.Collections.ArrayList  # Global messages array variable.
-$global:messages += @{ # Inital system message to set the tone of the conversation. Tweak to your liking
-    role="system"
-    content = "You are my helpful assistant. Please be brief. Address me as 'Sir', in the tone of a butler."
-}
-# Format of a user message is [{"role": "user", "content": "Hello! My name is Ross."}]
-# Format of a response is [{"role": "assistant", "content": "Hello Ross, I am ChatGPT."}]
-# Format of a system message [{"role": "system", "content": "You are my helpful assistant."}]
+$ConfigPath = Join-Path -Path $HOME -ChildPath '\.PowerShell-GPT\'
+$ConfigFile = (Join-Path -Path $($ConfigPath) -ChildPath 'PowerShell-GPT_config.json')
+$ApiKeyFile = (Join-Path -Path $($ConfigPath) -ChildPath 'openai.private' )
 
 Function invoke-Bot { # Send current prompt and an array with messages history to API.
     param(
-    [Parameter()][string]$api_key = $api_key,
-    [Parameter()][string]$endpoint = $endpoint,
-    [Parameter()][array]$messages = $global:messages,
+    [Parameter()][string]$api_key = $Global:api_key,
+    [Parameter()][string]$endpoint = $Global:endpoint,
+    [Parameter()][array]$messages = $Global:messages,
     [Parameter(Mandatory=$true)][string]$prompt
     )
+    if ($null -eq $api_key){return $false}
 
     $headers = @{
         "Content-Type" = "application/json"
@@ -45,7 +30,6 @@ Function invoke-Bot { # Send current prompt and an array with messages history t
         messages = $global:messages
         model = "$model"       
     } | ConvertTo-Json
-    
     $response = Invoke-RestMethod -Uri $endpoint -Headers $headers -Method Post -Body $body 
     $bot_reply = ($response.choices[0].message )
     return ($bot_reply |Write-Output)
@@ -86,7 +70,7 @@ Function Read-Prompt(){
     Help:                       Help()              Display this menu
     "
     Write-Host -ForegroundColor DarkMagenta $command_menu
-    
+    Read-Config 
     $Check = $false
     while($Check -eq $false){
         Switch -Regex (Read-Host -Prompt "$Question"){
@@ -131,13 +115,83 @@ Function Read-Prompt(){
                 if ($_ -eq ''){ # Do not send a blank line to our butler
                     continue
                 }
-                $response = invoke-Bot -prompt "$_" -messages $global:messages # Send Current prompt and $messages history
+                $response = invoke-Bot -prompt "$_" -messages $global:messages  # Send Current prompt and $messages history
                 $global:messages += $response # add the response hash table to the global messages array
                 Write-Host -ForegroundColor Green $response.content  # display the response content to the console                
             }
         }
     }
 } 
+Function Read-PromptYesNo([string]$Question){
+    $Check = $false
+    while($Check -eq $false){
+        Switch -Regex (Read-Host -Prompt "$Question `nYes/No"){
+            {'yes', 'y' -contains $_} {
+                $Check = $true
+                return $true
+            }
+            {'no', 'n' -contains $_ } {
+                $Check = $true
+                Return $False
+            }  
+            default { Write-Host "Please enter Y/N"}
+        }
+    }
+}  # Promt for yes/no | y/n and return true/false
+
+Function Set-PwshGPTConfig{
+    $RunSetup = $false
+   
+    if( -not (Test-Path -Path  $ApiKeyFile  )){
+        Write-Host -ForegroundColor Magenta "API Key File not found $ApiKeyFile"
+        $RunSetup = $true       
+    }
+
+    if( -not (Test-Path -Path $ConfigFile)){
+        Write-Host -ForegroundColor Magenta "Config File not found $ConfigFile"
+        $RunSetup = $true    
+    } 
+
+    if($RunSetup -and ( Read-PromptYesNo -Question "Run setup?" )){
+        Write-Host -ForegroundColor Yellow "This is where we load stuff"
+    } 
+
+
+}
+
+Function Read-Config(){
+    # Run setup if no config file or API Key
+    if ( (-not (Test-Path $ConfigFile) -or ( -not (Test-Path -Path $ApiKeyFile ))  ) ) {
+        Set-PwshGPTConfig
+        return 0
+    } 
+    # If the API key is not loaded and the file exists attempt to load the key
+    if ( $null -eq $Env:OPENAI_API_KEY ){
+        $Env:OPENAI_API_KEY = Get-Content $ApiKeyFile
+        $Global:api_key = $Env:OPENAI_API_KEY
+    } 
+
+    
+# You can set the API key as an environment var or however you like
+# $Env:API_KEY = 'sk-OPEN-API-KEY'
+$Global:api_key = $Env:API_KEY
+# https://platform.openai.com/account/api-keys
+
+# Set the API endpoint and headers
+# https://platform.openai.com/docs/models/model-endpoint-compatibility
+$Global:endpoint = "https://api.openai.com/v1/chat/completions" 
+$Global:model = 'gpt-3.5-turbo' #  
+
+# Setup Messages Array
+$global:messages = New-Object System.Collections.ArrayList  # Global messages array variable.
+$global:messages += @{ # Inital system message to set the tone of the conversation. Tweak to your liking
+    role="system"
+    content = "You are my helpful assistant. Please be brief. Address me as 'Sir', in the tone of a butler."
+}
+# Format of a user message is [{"role": "user", "content": "Hello! My name is Ross."}]
+# Format of a response is [{"role": "assistant", "content": "Hello Ross, I am ChatGPT."}]
+# Format of a system message [{"role": "system", "content": "You are my helpful assistant."}]
+}
 
 # Start Chat Prompt
 # Read-Prompt
