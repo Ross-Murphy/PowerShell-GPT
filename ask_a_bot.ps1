@@ -1,5 +1,5 @@
-# PowerShell-GPT - an OpenAI Chat for PowerShell. v0.2
-# https://github.com/Ross-Murphy/PowerShell-GPT
+# OpenAI Chat for PowerShell v0.2
+# https://github.com/Ross-Murphy
 # MIT License
 # https://platform.openai.com/docs/api-reference
 #
@@ -141,4 +141,4 @@ Function Read-Prompt(){
 
 # Start Chat Prompt
 # Read-Prompt
-New-Alias -Name "Start-chat" -Value Read-Prompt -Force
+New-Alias -Force -Name "Start-chat" -Value Read-Prompt
