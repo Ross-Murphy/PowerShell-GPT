@@ -141,4 +141,4 @@ Function Read-Prompt(){
 
 # Start Chat Prompt
 # Read-Prompt
-New-Alias -Name "Start-chat" -Value Read-Prompt -Force
+New-Alias  -Force -Name "Start-chat" -Value Read-Prompt
