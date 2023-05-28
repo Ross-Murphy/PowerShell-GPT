@@ -33,9 +33,20 @@ Very Handy in the terminal window in VsCode.
 
 How to use ?
 ---
-In this example you can add it to your profile and use it in VsCode
 
-In vscode PS terminal window 
+It's as simple as cloning the repository and running 
+
+`Import-Module -Name \path-to\PowerShell-GPT\PowerShell-GPT.psm1`
+It should run anywere that runs PowerShell 7.x  on Linux or Windows
+
+Adding the module import command to your PowerShell Profile is handy.
+
+In PS terminal window subsititue `code` for your prefered editor.
+`code $PROFILE`
+
+In this example below you can add it to your profile and use it in VsCode
+
+In the vscode PS terminal window 
 `code $PROFILE`
 
 add the following adjusting for your own path to your Api key and location where you git cloned the repo.
