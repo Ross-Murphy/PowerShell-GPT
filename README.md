@@ -1,4 +1,4 @@
-# PowerShell-GPT - an OpenAI Chat for PowerShell. v0.2
+# PowerShell-GPT - an OpenAI Chat for PowerShell. v0.3
 a simple GPT backed chat bot for PowerShell.
 MIT License 
 https://github.com/Ross-Murphy/PowerShell-GPT
@@ -41,16 +41,16 @@ In vscode PS terminal window
 add the following adjusting for your own path to your Api key and location where you git cloned the repo.
 ```powershell
 
-# Load OpenAI
+# Load OpenAI 
 $Env:API_KEY = Get-Content $HOME\.tokens\openai.private 
-.C:\Operations\DEV\PowerShell-GPT\ask_a_bot.ps1
+Import-Module -Name /path-to/PowerShell-GPT.psm1 -Force
+```
+
+Run start-chat 
 
 ```
 
-Or run it from the repo directory.
-```
-PS C:\DEV\PowerShell-GPT> . .\ask_a_bot.ps1
-PS C:\\DEV\PowerShell-GPT> start-chat
+start-chat
 
 You are now chatting with gpt-3.5-turbo
     Type your chat message and hit <enter> to send.
@@ -71,7 +71,6 @@ You are now chatting with gpt-3.5-turbo
 Good day, Sir. How may I be of assistance to you?
 
 : quit()
-
 ```
 
 ### Reference Material

@@ -1,4 +1,4 @@
-# PowerShell-GPT - an OpenAI Chat for PowerShell. v0.2
+# PowerShell-GPT - an OpenAI Chat for PowerShell.
 # https://github.com/Ross-Murphy/PowerShell-GPT
 # MIT License
 # https://platform.openai.com/docs/api-reference
