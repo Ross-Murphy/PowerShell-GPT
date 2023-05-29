@@ -3,33 +3,37 @@
 # MIT License
 # https://platform.openai.com/docs/api-reference
 #
-# You can set the API key as an environment var or however you like
-# $Env:API_KEY = 'sk-OPEN-API-KEY'
-$api_key = $Env:API_KEY
-# https://platform.openai.com/account/api-keys
 
-# Set the API endpoint and headers
-# https://platform.openai.com/docs/models/model-endpoint-compatibility
-$endpoint = "https://api.openai.com/v1/chat/completions" 
-$model = 'gpt-3.5-turbo' #  
+# Cross-platform home directory
+$Global:USERHOME = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::UserProfile)
 
-# Setup Messages Array
-$global:messages = New-Object System.Collections.ArrayList  # Global messages array variable.
-$global:messages += @{ # Inital system message to set the tone of the conversation. Tweak to your liking
-    role="system"
-    content = "You are my helpful assistant. Please be brief. Address me as 'Sir', in the tone of a butler."
+# Create Object to hold config
+$Global:Config = [PSCustomObject] @{
+    API_KEY = ''
+    endpoint = ""
+    model = ""
+    system_msg = ""
+    ConfigPath = ""
+    ConfigFile = "" 
 }
-# Format of a user message is [{"role": "user", "content": "Hello! My name is Ross."}]
-# Format of a response is [{"role": "assistant", "content": "Hello Ross, I am ChatGPT."}]
-# Format of a system message [{"role": "system", "content": "You are my helpful assistant."}]
+# Set some defaults
+$Config.ConfigPath = Join-Path -Path $USERHOME -ChildPath '.PowerShell-GPT' # Location of config dir
+$Config.ConfigFile = Join-Path -Path $Config.ConfigPath -ChildPath 'PowerShell-GPT_config.json' # Default name of the config file.
+$Config.endpoint = 'https://api.openai.com/v1/chat/completions' # The OpenAI endpoint for completions or chat. Currently only chat impelemted.
+$Config.model = 'gpt-3.5-turbo' # The Large Lang Model to use.
+$Config.system_msg = "You are my helpful assistant. Please be brief." # Default system message
 
 Function invoke-Bot { # Send current prompt and an array with messages history to API.
     param(
-    [Parameter()][string]$api_key = $api_key,
-    [Parameter()][string]$endpoint = $endpoint,
-    [Parameter()][array]$messages = $global:messages,
+    [Parameter()][string]$api_key = $Global:Config.API_KEY,
+    [Parameter()][string]$endpoint = $Global:Config.endpoint,
+    [Parameter()][string]$model = $Global:Config.model,
+    [Parameter()][array]$messages = $Global:messages,
     [Parameter(Mandatory=$true)][string]$prompt
     )
+    if ($null -eq $api_key){return $false}
+    if ($null -eq $endpoint){return $false}
+    if ($null -eq $model){return $false}
 
     $headers = @{
         "Content-Type" = "application/json"
@@ -45,7 +49,6 @@ Function invoke-Bot { # Send current prompt and an array with messages history t
         messages = $global:messages
         model = "$model"       
     } | ConvertTo-Json
-    
     $response = Invoke-RestMethod -Uri $endpoint -Headers $headers -Method Post -Body $body 
     $bot_reply = ($response.choices[0].message )
     return ($bot_reply |Write-Output)
@@ -66,11 +69,14 @@ function Get-MultiLineInput { # Dot-escape to exit.  ".<enter> "
     }
     return $inputLines -join "`n"
 }
-Function Read-Prompt(){
+Function Start-Chat(){
     param(
         [parameter()][array]$messages = $global:messages,
         [parameter()][string]$Question = "`n" 
     )
+    $model = $Global:Config.model
+    Read-Config
+
     $command_menu = "You are now chatting with $model
     Type your chat message and hit <enter> to send. 
     Or choose a command from the menu.
@@ -83,10 +89,11 @@ Function Read-Prompt(){
     Import Saved Chat:          Import()            Get `$Env:GPT_CHAT_MESSAGES array and append it to the current messages array
     Reset Chat Session:         Reset()             Clear messages array. Start fresh chat.
     History:                    History()           Display Chat History. See the content of the current messages array.
-    Help:                       Help()              Display this menu
+    Config:                     Conf()              Display Current Configuration.
+    Setup:                      Setup()             Set API-Key or Add or modify the system_msg - Set some Inital Instructions to the model.
+    Help:                       Help()              Display this help menu.
     "
     Write-Host -ForegroundColor DarkMagenta $command_menu
-    
     $Check = $false
     while($Check -eq $false){
         Switch -Regex (Read-Host -Prompt "$Question"){
@@ -118,27 +125,132 @@ Function Read-Prompt(){
            {'Clear()' -contains $_ } { # Clear export var 
                 $Env:GPT_CHAT_MESSAGES = ""
            }
-           {'Help()' -contains $_ } { # Clear export var 
-            Write-Host -ForegroundColor DarkMagenta $command_menu
-           }
            {'Reset()' -contains $_ } { # Delete Current Chat History. Start over but don't exit. You can import saved chats
                 $global:messages = @($global:messages[0]) # Keep only the inital system prompt
                 $response = invoke-Bot -prompt "Ready?" -messages $global:messages # 
                 $global:messages += $response # add the response hash table to the global messages array
                 Write-Host -ForegroundColor Green $response.content  # display the response content to the console                
            }
+           {'Conf()' -contains $_ } { # Show current config
+            Write-Host -ForegroundColor DarkMagenta "
+                API_KEY    : $($Global:Config.API_KEY)
+                Endpoint   : $($Global:Config.endpoint)
+                Model      : $($Global:Config.model)
+                ConfigPath : $($Global:Config.ConfigPath)
+                ConfigFile : $($Global:Config.ConfigFile)
+                System_Msg : $($Global:Config.system_msg)
+            "
+           }
+           {'Setup()' -contains $_ } { # Setup config.
+            Start-PowerShellGPTSetup
+           }
+
+           {'Help()' -contains $_ } { # Show command menu options
+            Write-Host -ForegroundColor DarkMagenta $command_menu
+           }
             default { 
                 if ($_ -eq ''){ # Do not send a blank line to our butler
                     continue
                 }
-                $response = invoke-Bot -prompt "$_" -messages $global:messages # Send Current prompt and $messages history
+                $response = invoke-Bot -prompt "$_" -messages $global:messages  # Send Current prompt and $messages history
                 $global:messages += $response # add the response hash table to the global messages array
                 Write-Host -ForegroundColor Green $response.content  # display the response content to the console                
             }
         }
     }
 } 
+Function Read-PromptYesNo{
+    param(
+        [Parameter()][string]$Question
+    )
+    $Check = $false
+    while($Check -eq $false){
+        Switch -Regex (Read-Host -Prompt "$Question `nYes/No"){
+            {'yes', 'y' -contains $_} {
+                $Check = $true
+                return $true
+            }
+            {'no', 'n' -contains $_ } {
+                $Check = $true
+                Return $False
+            }  
+            default { Write-Host "Please enter Y/N"}
+        }
+    }
+}  # Promt for yes/no | y/n and return true/false
 
-# Start Chat Prompt
-# Read-Prompt
-New-Alias  -Force -Name "Start-chat" -Value Read-Prompt
+Function Set-PwshGPTConfig{
+    param(
+        [Parameter()][bool]$RunSetup = $false  
+    )
+
+    if( -not (Test-Path -Path $Global:Config.ConfigFile)){
+        Write-Host -ForegroundColor Magenta "Config File not found $($Global:Config.ConfigFile)"
+        $RunSetup = $true    
+    } 
+
+    if($RunSetup -and ( Read-PromptYesNo -Question "Run setup?" )){
+        Write-Host -ForegroundColor Green "Creating configuration"
+        # create the config dir
+        if(-not (Test-Path $Global:Config.ConfigPath )) { New-Item -ItemType Directory -Path $Global:Config.ConfigPath }
+        # prompt for API key.   
+        if(  -not (Test-Path $Global:Config.ConfigPath ) ) {
+            Write-Error "ConfigPath not found $($Global:Config.ConfigPath)"
+            Get-Error
+            exit
+        }
+        # GET API_KEY
+        $Global:Config.API_KEY = Read-Host "Enter your API KEY"
+        # SET SYSTEM MSG
+        Write-Host -ForegroundColor Green "Current System Message`n $($Global:Config.system_msg)"
+        $system_msg = Read-Host "Enter your system message. A set of Default Instructions to the AI. <Enter> to accept default"
+        if (-not ([string]::IsNullOrWhiteSpace($system_msg))) { 
+           $Global:Config.system_msg = $system_msg  
+        }
+        Write-host -ForegroundColor Cyan "
+        API_KEY    : $($Global:Config.API_KEY)
+        Endpoint   : $($Global:Config.endpoint)
+        Model      : $($Global:Config.model)
+        ConfigPath : $($Global:Config.ConfigPath)
+        ConfigFile : $($Global:Config.ConfigFile)
+        System_Msg : $($Global:Config.system_msg)
+        "
+        Write-Host -ForegroundColor Green "Write Configuration to $($Global:Config.ConfigFile) ?"
+        if(Read-PromptYesNo -Question "Write config?"){
+            Set-Content -Path $Global:Config.ConfigFile -Value ($Global:Config | ConvertTo-Json -EscapeHandling EscapeNonAscii )
+        }
+    } 
+}
+
+Function Start-PowerShellGPTSetup{
+    Set-PwshGPTConfig -RunSetup $true
+}
+
+Function Read-Config(){
+    # Run setup if no config file found
+    if ( ($null -eq $Global:Config.ConfigFile) -or (-not (Test-Path $Global:Config.ConfigFile))  ) {
+        Set-PwshGPTConfig
+    }
+
+    # Read config json into global:config obj
+    $Global:Config = (Get-Content $Global:Config.ConfigFile | ConvertFrom-Json )
+    
+    # test loading API key as go / no-go
+    If( ($null -eq $Global:Config.API_KEY )){
+        Write-Host -ForegroundColor Red "No valid API key loaded. Exiting."
+        Exit
+    }
+
+    # Setup Messages Array
+    # Format of a user message is [{"role": "user", "content": "Hello! My name is Ross."}]
+    # Format of a response is [{"role": "assistant", "content": "Hello Ross, I am ChatGPT."}]
+    # Format of a system message [{"role": "system", "content": "You are my helpful assistant."}]
+    # ---
+    $global:messages = New-Object System.Collections.ArrayList  # Global messages array variable.
+    $global:messages += @{ # Inital system message to set the tone of the conversation. Tweak to your liking
+        role="system"
+        content = "$($Global:Config.system_msg)"
+    }
+
+}
+

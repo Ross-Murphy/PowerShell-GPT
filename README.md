@@ -1,4 +1,4 @@
-# PowerShell-GPT - an OpenAI Chat for PowerShell. v0.3
+# PowerShell-GPT - an OpenAI Chat for PowerShell. v0.4
 a simple GPT backed chat bot for PowerShell.
 MIT License 
 https://github.com/Ross-Murphy/PowerShell-GPT
@@ -12,7 +12,7 @@ I did not initially find an extension for VsCode to my liking. Also I thought it
 
 What's Next
 ---
-There are several other PowerShell OpenAI ChatGPT API scripts out there and honestly if I had found them first I may not have started this at all, however it was fun and I like the simplicity it all. This needs to become a proper module if it's to be distributed as a project. 
+There are several other PowerShell OpenAI ChatGPT API scripts out there and honestly if I had found them first I may not have started this at all, however it was fun and I like the simplicity of it all. This needs to become a proper module if it's to be distributed as a project. 
 Eventaully I would like to add some ability for the chat to interact with the shell in a limited capacity. 
 
 
@@ -34,10 +34,13 @@ Very Handy in the terminal window in VsCode.
 How to use ?
 ---
 
-It's as simple as cloning the repository and running 
+It's as simple as cloning the repository and importing the module
+`git-clone https://github.com/Ross-Murphy/PowerShell-GPT.git`
 
+Import Module.
 `Import-Module -Name \path-to\PowerShell-GPT\PowerShell-GPT.psm1`
-It should run anywere that runs PowerShell 7.x  on Linux or Windows
+
+It should run anywere that runs PowerShell 7.x on Linux or Windows etc.
 
 Adding the module import command to your PowerShell Profile is handy.
 
@@ -49,18 +52,15 @@ In this example below you can add it to your profile and use it in VsCode
 In the vscode PS terminal window 
 `code $PROFILE`
 
-add the following adjusting for your own path to your Api key and location where you git cloned the repo.
+add the following adjusting for your own path to your location where you git cloned the repo.
 ```powershell
-
-# Load OpenAI 
-$Env:API_KEY = Get-Content $HOME\.tokens\openai.private 
 Import-Module -Name /path-to/PowerShell-GPT.psm1 -Force
 ```
 
-Run start-chat 
+
+
 
 ```
-
 start-chat
 
 You are now chatting with gpt-3.5-turbo
@@ -83,6 +83,14 @@ Good day, Sir. How may I be of assistance to you?
 
 : quit()
 ```
+
+Setup
+---
+Run `start-chat` Note: The first time it will run Setup(). You will get prompted to configure your API key. 
+If you want to run the setup again at any time you can always run  `Start-PowerShellGPTSetup` in PowerShell
+Or alternatively you can use Setup() from the chat command menu.
+
+The setup creates a configuration directory in user home dir called `.PowerShell-GPT` and stores and loads the config in a json file stored there.
 
 ### Reference Material
 https://platform.openai.com/docs/api-reference
