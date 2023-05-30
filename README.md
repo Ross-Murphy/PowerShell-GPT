@@ -1,7 +1,8 @@
 # PowerShell-GPT - an OpenAI Chat for PowerShell. v0.4
-a simple GPT backed chat bot for PowerShell.
-MIT License 
+A simple GPT backed chat bot for PowerShell.
+
 https://github.com/Ross-Murphy/PowerShell-GPT
+
 
 ### Questions.
 
@@ -33,15 +34,17 @@ Very Handy in the terminal window in VsCode.
 
 How to use ?
 ---
+Get an API key from your OpenAI Account https://platform.openai.com/account/api-keys
 
-It's as simple as cloning the repository and importing the module
+Clone the repository 
 `git-clone https://github.com/Ross-Murphy/PowerShell-GPT.git`
 
 Import Module.
 `Import-Module -Name \path-to\PowerShell-GPT\PowerShell-GPT.psm1`
 
-It should run anywere that runs PowerShell 7.x on Linux or Windows etc.
+Run `Start-Chat` to kick off the setup for first time.
 
+It should run anywhere that runs PowerShell 7.x on Linux or Windows etc.
 Adding the module import command to your PowerShell Profile is handy.
 
 In PS terminal window subsititue `code` for your prefered editor.
@@ -89,4 +92,9 @@ Or alternatively you can use Setup() from the chat command menu.
 The setup creates a configuration directory in user home dir called `.PowerShell-GPT` and stores and loads the config in a json file stored there.
 
 ### Reference Material
+https://platform.openai.com/docs/introduction
 https://platform.openai.com/docs/api-reference
+
+License
+---
+MIT
