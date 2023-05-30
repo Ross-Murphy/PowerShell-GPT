@@ -92,8 +92,9 @@ Or alternatively you can use Setup() from the chat command menu.
 The setup creates a configuration directory in user home dir called `.PowerShell-GPT` and stores and loads the config in a json file stored there.
 
 ### Reference Material
-https://platform.openai.com/docs/introduction
-https://platform.openai.com/docs/api-reference
+[https://platform.openai.com/docs/introduction](https://platform.openai.com/docs/introduction)
+
+[https://platform.openai.com/docs/api-reference](https://platform.openai.com/docs/api-reference)
 
 License
 ---
