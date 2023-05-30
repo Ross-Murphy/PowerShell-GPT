@@ -19,9 +19,9 @@ $Global:Config = [PSCustomObject] @{
 # Set some defaults
 $Config.ConfigPath = Join-Path -Path $USERHOME -ChildPath '.PowerShell-GPT' # Location of config dir
 $Config.ConfigFile = Join-Path -Path $Config.ConfigPath -ChildPath 'PowerShell-GPT_config.json' # Default name of the config file.
-$Config.endpoint = 'https://api.openai.com/v1/chat/completions' # The OpenAI endpoint for completions or chat. Currently only chat impelemted.
-$Config.model = 'gpt-3.5-turbo' # The Large Lang Model to use.
-$Config.system_msg = "You are my helpful assistant. Please be brief." # Default system message
+$Config.endpoint = 'https://api.openai.com/v1/chat/completions' # The OpenAI endpoint for chat/completions
+$Config.model = 'gpt-3.5-turbo' # Default The Large Lang Model to use.
+$Config.system_msg = "You are my helpful assistant. Please be brief." # Default system message. Can be configured during setup.
 
 Function invoke-Bot { # Send current prompt and an array with messages history to API.
     param(
@@ -77,21 +77,22 @@ Function Start-Chat(){
     $model = $Global:Config.model
     Read-Config
 
-    $command_menu = "You are now chatting with $model
+    $command_menu = "
+You are now chatting with $model
     Type your chat message and hit <enter> to send. 
     Or choose a command from the menu.
-
-    Name                        Command             Description
-    ==================================================================================
-    Close Chat:                 Quit() or Exit()    End chat session. Alias Q()
-    Multiline input mode:       Multi()             Multiline text entry mode, Use Dot-escape to exit .<enter> 
-    Save/Export Current Chat:   Save() or S()       Export Contents of current chat messages to `$Env:GPT_CHAT_MESSAGES 
-    Import Saved Chat:          Import()            Get `$Env:GPT_CHAT_MESSAGES array and append it to the current messages array
-    Reset Chat Session:         Reset()             Clear messages array. Start fresh chat.
-    History:                    History()           Display Chat History. See the content of the current messages array.
-    Config:                     Conf()              Display Current Configuration.
-    Setup:                      Setup()             Set API-Key or Add or modify the system_msg - Set some Inital Instructions to the model.
-    Help:                       Help()              Display this help menu.
+==================================================================================
+Name                        Command             Description
+==================================================================================
+Close Chat:                 Quit() or Exit()    End chat session. Alias Q()
+Multiline input mode:       Multi()             Multiline text entry mode, Use Dot-escape to exit .<enter> 
+Save/Export Current Chat:   Save() or S()       Export Contents of current chat messages to `$Env:GPT_CHAT_MESSAGES 
+Import Saved Chat:          Import()            Get `$Env:GPT_CHAT_MESSAGES & append to current messages array.
+Reset Chat Session:         Reset()             Clear messages array. Start fresh chat.
+History:                    History()           Display Chat History. See Content of current messages array.
+Config:                     Conf()              Display Current Configuration.
+Setup:                      Setup()             Set API-Key, Modify system_msg, Inital Instructions to the model.
+Help:                       Help()              Display this help menu.
     "
     Write-Host -ForegroundColor DarkMagenta $command_menu
     $Check = $false
@@ -191,19 +192,21 @@ Function Set-PwshGPTConfig{
 
     if($RunSetup -and ( Read-PromptYesNo -Question "Run setup?" )){
         Write-Host -ForegroundColor Green "Creating configuration"
-        # create the config dir
+        # create the config dir if not exists.
         if(-not (Test-Path $Global:Config.ConfigPath )) { New-Item -ItemType Directory -Path $Global:Config.ConfigPath }
-        # prompt for API key.   
-        if(  -not (Test-Path $Global:Config.ConfigPath ) ) {
+        # End script here if dir still not available.
+        if( -not (Test-Path $Global:Config.ConfigPath ) ) {
             Write-Error "ConfigPath not found $($Global:Config.ConfigPath)"
             Get-Error
             exit
         }
         # GET API_KEY
         $Global:Config.API_KEY = Read-Host "Enter your API KEY"
-        # SET SYSTEM MSG
-        Write-Host -ForegroundColor Green "Current System Message`n $($Global:Config.system_msg)"
-        $system_msg = Read-Host "Enter your system message. A set of Default Instructions to the AI. <Enter> to accept default"
+        # SET SYSTEM MSG - A set of customizable instructions or addtional info for the bot 
+        Write-Host -ForegroundColor Green "Current System Message:"
+        Write-Host -ForegroundColor Cyan "$($Global:Config.system_msg)"
+        Write-Host -ForegroundColor Green "Enter New system message or press <Enter> to accept current"
+        $system_msg = Read-Host "system message>"
         if (-not ([string]::IsNullOrWhiteSpace($system_msg))) { 
            $Global:Config.system_msg = $system_msg  
         }
@@ -234,7 +237,10 @@ Function Read-Config(){
 
     # Read config json into global:config obj
     $Global:Config = (Get-Content $Global:Config.ConfigFile | ConvertFrom-Json )
-    
+    If($null -eq $Global:Config) {
+        Write-Host -ForegroundColor Red "ERROR. Config not loaded. Exiting."
+        Exit 1
+    }
     # test loading API key as go / no-go
     If( ($null -eq $Global:Config.API_KEY )){
         Write-Host -ForegroundColor Red "No valid API key loaded. Exiting."
