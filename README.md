@@ -55,28 +55,24 @@ In the vscode PS terminal window
 add the following adjusting for your own path to your location where you git cloned the repo.
 ```powershell
 Import-Module -Name /path-to/PowerShell-GPT.psm1 -Force
-```
 
-
-
-
-```
 start-chat
 
 You are now chatting with gpt-3.5-turbo
     Type your chat message and hit <enter> to send.
     Or choose a command from the menu.
-
-    Name                        Command             Description
-    ==================================================================================
-    Close Chat:                 Quit() or Exit()    End chat session. Alias Q()
-    Multiline input mode:       Multi()             Multiline text entry mode, Use Dot-escape to exit .<enter>
-    Save/Export Current Chat:   Save() or S()       Export Contents of current chat messages to $Env:GPT_CHAT_MESSAGES
-    Import Saved Chat:          Import()            Get $Env:GPT_CHAT_MESSAGES array and append it to the current messages array
-    Reset Chat Session:         Reset()             Clear messages array. Start fresh chat.
-    History:                    History()           Display Chat History. See the content of the current messages array.
-    Help:                       Help()              Display this menu
-
+==================================================================================
+Name                        Command             Description
+==================================================================================
+Close Chat:                 Quit() or Exit()    End chat session. Alias Q()
+Multiline input mode:       Multi()             Multiline text entry mode, Use Dot-escape to exit .<enter> 
+Save/Export Current Chat:   Save() or S()       Export Contents of current chat messages to `$Env:GPT_CHAT_MESSAGES 
+Import Saved Chat:          Import()            Get `$Env:GPT_CHAT_MESSAGES & append it to the current messages array.
+Reset Chat Session:         Reset()             Clear messages array. Start fresh chat.
+History:                    History()           Display Chat History. See Content of current messages array.
+Config:                     Conf()              Display Current Configuration.
+Setup:                      Setup()             Set API-Key, Modify system_msg - Inital Instructions to the model.
+Help:                       Help()              Display this help menu.
 
 : Good Day.         
 Good day, Sir. How may I be of assistance to you?
