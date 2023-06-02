@@ -1,5 +1,5 @@
 # PowerShell-GPT - an OpenAI Chat for PowerShell. v0.4
-A simple GPT backed chat bot for PowerShell.
+A simple ChatGPT powered chat for PowerShell.
 
 https://github.com/Ross-Murphy/PowerShell-GPT
 
@@ -8,8 +8,11 @@ https://github.com/Ross-Murphy/PowerShell-GPT
 
 What is this?
 ---
+Simply import the PowerShell module and you can call up a simple command line chat interface with OpenAI ChatGPT to help with whatever you like. Add the module command to your PowerShell profile and you will always have it ready to go. 
+
 This started off as a way to have a simple coding and virtual assistant inside VSCode or in my other PowerShell task windows. 
 I did not initially find an extension for VsCode to my liking. Also I thought it would be fun to code something like this and it only took a few hours of innovation time. 
+
 
 What's Next
 ---
@@ -32,7 +35,7 @@ Very Handy in the terminal window in VsCode.
 ![Very handy in vscode](images/vscode.PNG)
 
 
-How to use ?
+How to Get Started?
 ---
 Get an API key from your OpenAI Account https://platform.openai.com/account/api-keys
 
@@ -44,7 +47,12 @@ Import Module.
 
 Run `Start-Chat` to kick off the setup for first time.
 
-It should run anywhere that runs PowerShell 7.x on Linux or Windows etc.
+Cross Platform Support
+---
+As of version 0.4 this should run anywhere that runs PowerShell 7.x on Linux or Windows etc.
+
+How to use?
+---
 Adding the module import command to your PowerShell Profile is handy.
 
 In PS terminal window subsititue `code` for your prefered editor.
