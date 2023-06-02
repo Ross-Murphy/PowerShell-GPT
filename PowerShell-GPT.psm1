@@ -49,7 +49,15 @@ Function invoke-Bot { # Send current prompt and an array with messages history t
         messages = $global:messages
         model = "$model"       
     } | ConvertTo-Json
-    $response = Invoke-RestMethod -Uri $endpoint -Headers $headers -Method Post -Body $body 
+   
+    try {
+        $response = Invoke-RestMethod -Uri $endpoint -Headers $headers -Method Post -Body $body 
+    }
+    catch {
+        Write-Host -ForegroundColor Red "Invoke-RestMethod - An error occurred: $($_.Exception.Message)"
+        return $false
+    }
+    
     $bot_reply = ($response.choices[0].message )
     return ($bot_reply |Write-Output)
 }
@@ -105,8 +113,12 @@ Help:                       Help()              Display this help menu.
                 Write-Host -ForegroundColor DarkMagenta "Multi Line Input. Empty line with . to end "
                 [string]$MultiLineInput = Get-MultiLineInput
                 $response = invoke-Bot -prompt "$MultiLineInput" -messages $global:messages # Send Current prompt and $messages history
-                $global:messages += $response # add the response hash table to the global messages array
-                Write-Host -ForegroundColor Green $response.content  # display the response content to the console                
+                if($response){
+                    $global:messages += $response # add the response hash table to the global messages array
+                    Write-Host -ForegroundColor Green $response.content  # display the response content to the console                  
+                } else {
+                    Write-Host -ForegroundColor DarkYellow "Warning. API Response is false."
+                } 
             }
             {'History()' -contains $_ } {
                 Write-Host -ForegroundColor Cyan  ( $global:messages|ConvertTo-Json)  # write out chat history as json
@@ -129,8 +141,12 @@ Help:                       Help()              Display this help menu.
            {'Reset()' -contains $_ } { # Delete Current Chat History. Start over but don't exit. You can import saved chats
                 $global:messages = @($global:messages[0]) # Keep only the inital system prompt
                 $response = invoke-Bot -prompt "Ready?" -messages $global:messages # 
-                $global:messages += $response # add the response hash table to the global messages array
-                Write-Host -ForegroundColor Green $response.content  # display the response content to the console                
+                if($response){
+                    $global:messages += $response # add the response hash table to the global messages array
+                    Write-Host -ForegroundColor Green $response.content  # display the response content to the console                  
+                } else {
+                    Write-Host -ForegroundColor DarkYellow "Warning. API Response is false."
+                }              
            }
            {'Conf()' -contains $_ } { # Show current config
             Write-Host -ForegroundColor DarkMagenta "
@@ -154,8 +170,12 @@ Help:                       Help()              Display this help menu.
                     continue
                 }
                 $response = invoke-Bot -prompt "$_" -messages $global:messages  # Send Current prompt and $messages history
-                $global:messages += $response # add the response hash table to the global messages array
-                Write-Host -ForegroundColor Green $response.content  # display the response content to the console                
+                if($response){
+                    $global:messages += $response # add the response hash table to the global messages array
+                    Write-Host -ForegroundColor Green $response.content  # display the response content to the console                  
+                } else {
+                    Write-Host -ForegroundColor DarkYellow "Warning. API Response is false."
+                }               
             }
         }
     }
