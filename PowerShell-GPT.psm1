@@ -22,13 +22,15 @@ $Config.ConfigFile = Join-Path -Path $Config.ConfigPath -ChildPath 'PowerShell-G
 $Config.endpoint = 'https://api.openai.com/v1/chat/completions' # The OpenAI endpoint for chat/completions
 $Config.model = 'gpt-3.5-turbo' # Default The Large Lang Model to use.
 $Config.system_msg = "You are my helpful assistant. Please be brief." # Default system message. Can be configured during setup.
+$debugging = $false
 
+# --- Functions --- 
 Function invoke-Bot { # Send current prompt and an array with messages history to API.
     param(
     [Parameter()][string]$api_key = $Global:Config.API_KEY,
     [Parameter()][string]$endpoint = $Global:Config.endpoint,
     [Parameter()][string]$model = $Global:Config.model,
-    [Parameter()][array]$messages = $Global:messages,
+    [Parameter()][array]$messages = $global:Session.Messages,
     [Parameter(Mandatory=$true)][string]$prompt
     )
     if ($null -eq $api_key){return $false}
@@ -40,13 +42,13 @@ Function invoke-Bot { # Send current prompt and an array with messages history t
         "Authorization" = "Bearer $api_key"
     }
 
-    $global:messages += @{ 
+    $global:Session.Messages += @{ 
         role = 'user' 
         content = "$prompt" 
     }
     
     $body = @{
-        messages = $global:messages
+        messages = $global:Session.Messages
         model = "$model"       
     } | ConvertTo-Json
    
@@ -59,6 +61,7 @@ Function invoke-Bot { # Send current prompt and an array with messages history t
     }
     
     $bot_reply = ($response.choices[0].message )
+    $global:Session.Tokens = ($response.usage.total_tokens )
     return ($bot_reply |Write-Output)
 }
 function Get-MultiLineInput { # Dot-escape to exit.  ".<enter> " 
@@ -79,7 +82,7 @@ function Get-MultiLineInput { # Dot-escape to exit.  ".<enter> "
 }
 Function Start-Chat(){
     param(
-        [parameter()][array]$messages = $global:messages,
+        [parameter()][array]$messages = $global:Session.Messages,
         [parameter()][string]$Question = "`n" 
     )
     $model = $Global:Config.model
@@ -105,37 +108,39 @@ Help:                       Help()              Display this help menu.
     Write-Host -ForegroundColor DarkMagenta $command_menu
     $Check = $false
     while($Check -eq $false){
+        if ($debugging){Write-Host -ForegroundColor Yellow "Current tokens $($Session.Tokens)"}
+
         Switch -Regex (Read-Host -Prompt "$Question"){
             {'Quit()', 'Exit()' -contains $_ } {
                 $Check = $true
             }
             {'Q()' -contains $_ } {
-                $Env:GPT_CHAT_MESSAGES = $global:messages|ConvertTo-Json
+                $Env:GPT_CHAT_MESSAGES = $global:Session.Messages|ConvertTo-Json
                 $Check = $true
             }
             {'Multi()', 'M()' -contains $_ } {
                 Write-Host -ForegroundColor DarkMagenta "Multi Line Input. Empty line with . to end "
                 [string]$MultiLineInput = Get-MultiLineInput
-                $response = invoke-Bot -prompt "$MultiLineInput" -messages $global:messages # Send Current prompt and $messages history
+                $response = invoke-Bot -prompt "$MultiLineInput" -messages $global:Session.Messages # Send Current prompt and $messages history
                 if($response){
-                    $global:messages += $response # add the response hash table to the global messages array
+                    $global:Session.Messages += $response # add the response hash table to the global messages array
                     Write-Host -ForegroundColor Green $response.content  # display the response content to the console                  
                 } else {
                     Write-Host -ForegroundColor DarkYellow "Warning. API Response is false."
                 } 
             }
             {'History()' -contains $_ } {
-                Write-Host -ForegroundColor Cyan  ( $global:messages|ConvertTo-Json)  # write out chat history as json
+                Write-Host -ForegroundColor Cyan  ( $global:Session.Messages|ConvertTo-Json)  # write out chat history as json
            }
             {'Save()', 'S()' -contains $_ } { # json export chat history and display it 
-                 $Env:GPT_CHAT_MESSAGES = $global:messages|ConvertTo-Json
+                 $Env:GPT_CHAT_MESSAGES = $global:Session.Messages|ConvertTo-Json
                  Write-Host -ForegroundColor DarkCyan $Env:GPT_CHAT_MESSAGES  
             }
             {'Import()', 'I()' -contains $_ } { # check $Env:GPT_CHAT_MESSAGES and see if it has an array and try to load it.
-                #$Env:GPT_CHAT_MESSAGES = $global:messages|ConvertTo-Json
+                #$Env:GPT_CHAT_MESSAGES = $global:Session.Messages|ConvertTo-Json
                 $import_last = ($Env:GPT_CHAT_MESSAGES | ConvertFrom-Json) # prehaps some more checks here...
                 if ( $import_last -is [array]){
-                    $global:messages += $import_last
+                    $global:Session.Messages += $import_last
                 }               
                 Write-Host -ForegroundColor DarkCyan "Imported:`n$($Env:GPT_CHAT_MESSAGES)"
            }
@@ -143,10 +148,10 @@ Help:                       Help()              Display this help menu.
                 $Env:GPT_CHAT_MESSAGES = ""
            }
            {'Reset()' -contains $_ } { # Delete Current Chat History. Start over but don't exit. You can import saved chats
-                $global:messages = @($global:messages[0]) # Keep only the inital system prompt
-                $response = invoke-Bot -prompt "Ready?" -messages $global:messages # 
+                $global:Session.Messages = @($global:Session.Messages[0]) # Keep only the inital system prompt
+                $response = invoke-Bot -prompt "Ready?" -messages $global:Session.Messages # 
                 if($response){
-                    $global:messages += $response # add the response hash table to the global messages array
+                    $global:Session.Messages += $response # add the response hash table to the global messages array
                     Write-Host -ForegroundColor Green $response.content  # display the response content to the console                  
                 } else {
                     Write-Host -ForegroundColor DarkYellow "Warning. API Response is false."
@@ -173,9 +178,9 @@ Help:                       Help()              Display this help menu.
                 if ($_ -eq ''){ # Do not send a blank line to our butler
                     continue
                 }
-                $response = invoke-Bot -prompt "$_" -messages $global:messages  # Send Current prompt and $messages history
+                $response = invoke-Bot -prompt "$_" -messages $global:Session.Messages  # Send Current prompt and $messages history
                 if($response){
-                    $global:messages += $response # add the response hash table to the global messages array
+                    $global:Session.Messages += $response # add the response hash table to the global messages array
                     Write-Host -ForegroundColor Green $response.content  # display the response content to the console                  
                 } else {
                     Write-Host -ForegroundColor DarkYellow "Warning. API Response is false."
@@ -276,11 +281,19 @@ Function Read-Config(){
     # Format of a response is [{"role": "assistant", "content": "Hello Ross, I am ChatGPT."}]
     # Format of a system message [{"role": "system", "content": "You are my helpful assistant."}]
     # ---
-    $global:messages = New-Object System.Collections.ArrayList  # Global messages array variable.
-    $global:messages += @{ # Inital system message to set the tone of the conversation. Tweak to your liking
+    $global:Session = New-Object -TypeName PSObject -Property @{
+        Messages = New-Object -TypeName System.Collections.ArrayList
+        Tokens   = 0
+    }
+
+   # $global:Session.Messages = New-Object System.Collections.ArrayList  # Global messages array variable.
+    $global:Session.Messages += @{ # Inital system message to set the tone of the conversation. Tweak to your liking
         role="system"
         content = "$($Global:Config.system_msg)"
     }
+    
+
+    #$global:Session.Messages = $global:Session.Messages
 
 }
 
