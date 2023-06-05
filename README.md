@@ -66,7 +66,12 @@ In the vscode PS terminal window
 add the following adjusting for your own path to your location where you git cloned the repo.
 ```powershell
 Import-Module -Name /path-to/PowerShell-GPT.psm1 -Force
+```
 
+When you next login and the module is loaded you simply run `start-chat` to get started.
+
+
+```
 start-chat
 
 You are now chatting with gpt-3.5-turbo
@@ -75,7 +80,7 @@ You are now chatting with gpt-3.5-turbo
 ==================================================================================
 Name                        Command             Description
 ==================================================================================
-Close Chat:                 Quit() or Exit()    End chat session. Alias Q()
+Close Chat:                 Quit() or Exit()    End chat session. Alias Q() is Save and Quit.
 Multiline input mode:       Multi()             Multiline text entry mode, Use Dot-escape to exit .<enter> 
 Save/Export Current Chat:   Save() or S()       Export Contents of current chat messages to `$Env:GPT_CHAT_MESSAGES 
 Import Saved Chat:          Import()            Get `$Env:GPT_CHAT_MESSAGES & append it to the current messages array.

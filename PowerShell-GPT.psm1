@@ -92,10 +92,10 @@ You are now chatting with $model
 ==================================================================================
 Name                        Command             Description
 ==================================================================================
-Close Chat:                 Quit() or Exit()    End chat session. Alias Q()
+Close Chat:                 Quit() or Exit()    End chat session. Alias Q() is Save and Quit.
 Multiline input mode:       Multi()             Multiline text entry mode, Use Dot-escape to exit .<enter> 
 Save/Export Current Chat:   Save() or S()       Export Contents of current chat messages to `$Env:GPT_CHAT_MESSAGES 
-Import Saved Chat:          Import()            Get `$Env:GPT_CHAT_MESSAGES & append to current messages array.
+Import Saved Chat:          Import() or I()     Get `$Env:GPT_CHAT_MESSAGES & append to current messages array.
 Reset Chat Session:         Reset()             Clear messages array. Start fresh chat.
 History:                    History()           Display Chat History. See Content of current messages array.
 Config:                     Conf()              Display Current Configuration.
@@ -106,7 +106,11 @@ Help:                       Help()              Display this help menu.
     $Check = $false
     while($Check -eq $false){
         Switch -Regex (Read-Host -Prompt "$Question"){
-            {'Quit()', 'Exit()', 'Q()' -contains $_ } {
+            {'Quit()', 'Exit()' -contains $_ } {
+                $Check = $true
+            }
+            {'Q()' -contains $_ } {
+                $Env:GPT_CHAT_MESSAGES = $global:messages|ConvertTo-Json
                 $Check = $true
             }
             {'Multi()', 'M()' -contains $_ } {
@@ -127,7 +131,7 @@ Help:                       Help()              Display this help menu.
                  $Env:GPT_CHAT_MESSAGES = $global:messages|ConvertTo-Json
                  Write-Host -ForegroundColor DarkCyan $Env:GPT_CHAT_MESSAGES  
             }
-            {'Import()' -contains $_ } { # check $Env:GPT_CHAT_MESSAGES and see if it has an array and try to load it.
+            {'Import()', 'I()' -contains $_ } { # check $Env:GPT_CHAT_MESSAGES and see if it has an array and try to load it.
                 #$Env:GPT_CHAT_MESSAGES = $global:messages|ConvertTo-Json
                 $import_last = ($Env:GPT_CHAT_MESSAGES | ConvertFrom-Json) # prehaps some more checks here...
                 if ( $import_last -is [array]){
