@@ -31,11 +31,12 @@ Function invoke-Bot { # Send current prompt and an array with messages history t
     [Parameter()][string]$endpoint = $Global:Config.endpoint,
     [Parameter()][string]$model = $Global:Config.model,
     [Parameter()][array]$messages = $global:Session.Messages,
-    [Parameter(Mandatory=$true)][string]$prompt
+    [Parameter()][string]$prompt
     )
     if ($null -eq $api_key){return $false}
     if ($null -eq $endpoint){return $false}
     if ($null -eq $model){return $false}
+    if (($null -eq $prompt) -and ($messages.Count -lt 1 ) ){return $false}
 
     $headers = @{
         "Content-Type" = "application/json"
@@ -66,7 +67,38 @@ Function invoke-Bot { # Send current prompt and an array with messages history t
 }
 
 Function invoke-SystemMessage{ # Send System message .
+    param(
+    [Parameter()][array]$messages,
+    [Parameter()][string]$content
+    )
+    $SystemMsg = New-Object -TypeName System.Collections.ArrayList
+    
+    if($content) { # Prepend Content system message 
+        $SystemMsg += @{
+            role="system"
+            content = "$content" 
+        }
+    }
+   
+    foreach ($message in $messages) {
+        $SystemMsg += @{ 
+            role="system"
+            content = "$message"   
+        }
+    }
 
+    If($SystemMsg.Count -ge 1 ){
+        $response = invoke-Bot -messages $SystemMsg # Send  $messages array
+        $SystemMsg
+    }
+    
+    if($response){
+        #Write-Host -ForegroundColor Green $response.content  # display the response content to the console    
+        #$messages
+        return $response.content              
+    } else {
+        Write-Host -ForegroundColor DarkYellow "Warning. API Response is false."
+    } 
 }
 function Get-MultiLineInput { # Dot-escape to exit.  ".<enter> " 
     $inputLines = @()
