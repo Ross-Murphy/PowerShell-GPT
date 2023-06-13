@@ -42,13 +42,13 @@ Function invoke-Bot { # Send current prompt and an array with messages history t
         "Authorization" = "Bearer $api_key"
     }
 
-    $global:Session.Messages += @{ 
+    $messages += @{ 
         role = 'user' 
         content = "$prompt" 
     }
     
     $body = @{
-        messages = $global:Session.Messages
+        messages = $messages
         model = "$model"       
     } | ConvertTo-Json
    
@@ -63,6 +63,10 @@ Function invoke-Bot { # Send current prompt and an array with messages history t
     $bot_reply = ($response.choices[0].message )
     $global:Session.Tokens = ($response.usage.total_tokens )
     return ($bot_reply |Write-Output)
+}
+
+Function invoke-SystemMessage{ # Send System message .
+
 }
 function Get-MultiLineInput { # Dot-escape to exit.  ".<enter> " 
     $inputLines = @()
