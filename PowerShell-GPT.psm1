@@ -14,7 +14,8 @@ $Global:Config = [PSCustomObject] @{
     model = ""
     system_msg = ""
     ConfigPath = ""
-    ConfigFile = "" 
+    ConfigFile = ""
+    Debugging = ""
 }
 # Set some defaults
 $Config.ConfigPath = Join-Path -Path $USERHOME -ChildPath '.PowerShell-GPT' # Location of config dir
@@ -22,7 +23,9 @@ $Config.ConfigFile = Join-Path -Path $Config.ConfigPath -ChildPath 'PowerShell-G
 $Config.endpoint = 'https://api.openai.com/v1/chat/completions' # The OpenAI endpoint for chat/completions
 $Config.model = 'gpt-3.5-turbo' # Default The Large Lang Model to use.
 $Config.system_msg = "You are my helpful assistant. Please be brief." # Default system message. Can be configured during setup.
-$debugging = $false
+$Config.Debugging = '1' # Enable more verbose output for troubleshooting.
+
+
 
 # --- Functions --- 
 Function invoke-Bot { # Send current prompt and an array with messages history to API.
@@ -71,6 +74,7 @@ Function invoke-SystemMessage{ # Send System message .
     [Parameter()][array]$messages,
     [Parameter()][string]$content
     )
+    $response = $false
     $SystemMsg = New-Object -TypeName System.Collections.ArrayList
     
     if($content) { # Prepend Content system message 
@@ -97,7 +101,8 @@ Function invoke-SystemMessage{ # Send System message .
         #$messages
         return $response.content              
     } else {
-        Write-Host -ForegroundColor DarkYellow "Warning. API Response is false."
+        if ($Global:Config.Debugging){Write-Host -ForegroundColor Yellow "Warning. API Response is false"}
+        return $response
     } 
 }
 function Get-MultiLineInput { # Dot-escape to exit.  ".<enter> " 
@@ -124,8 +129,7 @@ Function Start-Chat(){
     $model = $Global:Config.model
     Read-Config
 
-    $command_menu = "
-You are now chatting with $model
+    $command_menu = "You are now chatting with $model
     Type your chat message and hit <enter> to send. 
     Or choose a command from the menu.
 ==================================================================================
@@ -144,7 +148,7 @@ Help:                       Help()              Display this help menu.
     Write-Host -ForegroundColor DarkMagenta $command_menu
     $Check = $false
     while($Check -eq $false){
-        if ($debugging){Write-Host -ForegroundColor Yellow "Current tokens $($Session.Tokens)"}
+        if ($Global:Config.Debugging){Write-Host -ForegroundColor Yellow "Current tokens $($Session.Tokens)"}
 
         Switch -Regex (Read-Host -Prompt "$Question"){
             {'Quit()', 'Exit()' -contains $_ } {
@@ -201,6 +205,7 @@ Help:                       Help()              Display this help menu.
                 ConfigPath : $($Global:Config.ConfigPath)
                 ConfigFile : $($Global:Config.ConfigFile)
                 System_Msg : $($Global:Config.system_msg)
+                Debugging  : $($Global:Config.Debugging)
             "
            }
            {'Setup()' -contains $_ } { # Setup config.
@@ -243,7 +248,7 @@ Function Read-PromptYesNo{
             default { Write-Host "Please enter Y/N"}
         }
     }
-}  # Promt for yes/no | y/n and return true/false
+}  # Prompt for yes/no | y/n and return true/false
 
 Function Set-PwshGPTConfig{
     param(
@@ -256,9 +261,12 @@ Function Set-PwshGPTConfig{
     } 
 
     if($RunSetup -and ( Read-PromptYesNo -Question "Run setup?" )){
-        Write-Host -ForegroundColor Green "Creating configuration"
+        Write-Host -ForegroundColor Green "Configure PowerShell-GPT"    
         # create the config dir if not exists.
-        if(-not (Test-Path $Global:Config.ConfigPath )) { New-Item -ItemType Directory -Path $Global:Config.ConfigPath }
+        if(-not (Test-Path $Global:Config.ConfigPath )) { 
+            Write-Host -ForegroundColor Green "Creating configuration dir $($Global:Config.ConfigPath)"    
+            New-Item -ItemType Directory -Path $Global:Config.ConfigPath 
+        }
         # End script here if dir still not available.
         if( -not (Test-Path $Global:Config.ConfigPath ) ) {
             Write-Error "ConfigPath not found $($Global:Config.ConfigPath)"
@@ -266,15 +274,34 @@ Function Set-PwshGPTConfig{
             exit
         }
         # GET API_KEY
-        $Global:Config.API_KEY = Read-Host "Enter your API KEY"
+        if( ($Global:Config.API_KEY.Length -gt 49 ) ){
+            Write-Host -ForegroundColor Green "Current API Key: " -NoNewline
+            Write-Host -ForegroundColor Cyan "$($Global:Config.API_KEY)"
+            Write-Host -ForegroundColor Green "Enter New API Key or press <Enter> to accept current."
+        } else{
+            Write-Host -ForegroundColor Green "Enter OpenAI API Key"
+        }
+        $api_key = Read-Host "OpenAI API Key>"
+        if (-not ([string]::IsNullOrWhiteSpace($api_key ))) { 
+           $Global:Config.API_KEY = $api_key 
+        } 
+
         # SET SYSTEM MSG - A set of customizable instructions or addtional info for the bot 
-        Write-Host -ForegroundColor Green "Current System Message:"
+        Write-Host -ForegroundColor Green "Current System Message: " -NoNewline
         Write-Host -ForegroundColor Cyan "$($Global:Config.system_msg)"
         Write-Host -ForegroundColor Green "Enter New system message or press <Enter> to accept current"
         $system_msg = Read-Host "system message>"
         if (-not ([string]::IsNullOrWhiteSpace($system_msg))) { 
            $Global:Config.system_msg = $system_msg  
         }
+
+        Write-Host -ForegroundColor Green "Enable Debug messages: " -NoNewline
+        If(Read-PromptYesNo -Question "?"){
+            $Global:Config.Debugging = $true            
+        }else {
+            $Global:Config.Debugging = $false
+        }
+
         Write-host -ForegroundColor Cyan "
         API_KEY    : $($Global:Config.API_KEY)
         Endpoint   : $($Global:Config.endpoint)
@@ -282,6 +309,7 @@ Function Set-PwshGPTConfig{
         ConfigPath : $($Global:Config.ConfigPath)
         ConfigFile : $($Global:Config.ConfigFile)
         System_Msg : $($Global:Config.system_msg)
+        Debugging  : $($Global:Config.Debugging)
         "
         Write-Host -ForegroundColor Green "Write Configuration to $($Global:Config.ConfigFile) ?"
         if(Read-PromptYesNo -Question "Write config?"){
@@ -327,9 +355,6 @@ Function Read-Config(){
         role="system"
         content = "$($Global:Config.system_msg)"
     }
-    
-
-    #$global:Session.Messages = $global:Session.Messages
 
 }
 
