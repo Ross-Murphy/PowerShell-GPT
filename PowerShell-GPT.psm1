@@ -30,7 +30,7 @@ $Config.ConfigFile = Join-Path -Path $Config.ConfigPath -ChildPath 'PowerShell-G
 $Config.endpoint = 'https://api.openai.com/v1/chat/completions' # The OpenAI endpoint for chat/completions
 $Config.model = $Global:Models[0] # Default The Large Lang Model to use.
 $Config.system_msg = "You are my helpful assistant. Please be brief." # Default system message. Can be configured during setup.
-$Config.Debugging = '1' # Enable more verbose output for troubleshooting.
+$Config.Debugging = '0' # Enable more verbose output for troubleshooting.
 
 
 # --- Functions --- 
