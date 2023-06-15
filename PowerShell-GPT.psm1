@@ -25,7 +25,12 @@ $Config.model = 'gpt-3.5-turbo' # Default The Large Lang Model to use.
 $Config.system_msg = "You are my helpful assistant. Please be brief." # Default system message. Can be configured during setup.
 $Config.Debugging = '1' # Enable more verbose output for troubleshooting.
 
-
+$Global:Models = @(
+    'gpt-3.5-turbo',
+    'gpt-3.5-turbo-16k',
+    'gpt-3.5-turbo-0613',
+    'gpt-3.5-turbo-0613-16k'
+)
 
 # --- Functions --- 
 Function invoke-Bot { # Send current prompt and an array with messages history to API.
@@ -121,6 +126,37 @@ function Get-MultiLineInput { # Dot-escape to exit.  ".<enter> "
     }
     return $inputLines -join "`n"
 }
+Function Read-Menu ([array]$Options,  $PromptText = $False ){
+    $Check = $false
+    If ($PromptText){ 
+        Write-Host -ForegroundColor Green "$PromptText"
+    } else {
+        Write-Host -ForegroundColor Green "Please choose one of the following options..."
+    }
+    
+    [int]$i = 1 # set counter
+    while($Check -eq $false) {  
+        Foreach ($MenuOption in $options){
+            Write-Host -ForegroundColor Yellow "$i :> $MenuOption"
+            $i++
+        }
+        Write-Host -ForegroundColor Yellow "0 :> Cancel"
+        [int]$i = 1 # reset the counter.
+        [int]$Choice = Read-Host -Prompt "Selection"
+        
+        If($Choice -le 0) { # returns 0 if chosen for cancel.
+            $Check = $true
+            return [int]0
+        }
+        If($Choice -le $options.Count){
+            $Check = $true
+            Return $Choice
+        }Else{ 
+            Write-Host -ForegroundColor Red "Invalid option. Please choose an option from 0 to $($options.Count)"
+        }
+    }  
+} # Generate a menu with array of options. returns the int of the choice made. counts from 1.
+
 Function Start-Chat(){
     param(
         [parameter()][array]$messages = $global:Session.Messages,
@@ -296,6 +332,13 @@ Function Set-PwshGPTConfig{
         }
 
         Write-Host -ForegroundColor Green "Enable Debug messages: " -NoNewline
+        If(Read-PromptYesNo -Question "?"){
+            $Global:Config.Debugging = $true            
+        }else {
+            $Global:Config.Debugging = $false
+        }
+
+        Write-Host -ForegroundColor Green "Enable Large Message Context: " -NoNewline
         If(Read-PromptYesNo -Question "?"){
             $Global:Config.Debugging = $true            
         }else {
