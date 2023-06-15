@@ -192,20 +192,22 @@ Function Start-Chat(){
     $model = $Global:Config.model
     Read-Config
 
-    $command_menu = "You are now chatting with $model
-    Type your chat message and hit <enter> to send. 
+    $command_menu = "
+    You are now chatting with $model.  Type your chat message and hit <enter> to send. 
     Or choose a command from the menu.
+---    
+GPT-PowerShell Version 0.5
 ==================================================================================
-Name                        Command             Description
+Name                        Command             Description 
 ==================================================================================
 Close Chat:                 Quit() or Exit()    End chat session. Alias Q() is Save and Quit.
-Multiline input mode:       Multi()             Multiline text entry mode, Use Dot-escape to exit .<enter> 
+Multiline input mode:       Multi() or M()      Multiline text entry mode, Use Dot-escape to exit .<enter> 
 Save/Export Current Chat:   Save() or S()       Export Contents of current chat messages to `$Env:GPT_CHAT_MESSAGES 
-Import Saved Chat:          Import() or I()     Get `$Env:GPT_CHAT_MESSAGES & append to current messages array.
+Import Saved Chat:          Import() or I()     Import content of `$Env:GPT_CHAT_MESSAGES & append to current messages array.
 Reset Chat Session:         Reset()             Clear messages array. Start fresh chat.
 History:                    History()           Display Chat History. See Content of current messages array.
 Config:                     Conf()              Display Current Configuration.
-Setup:                      Setup()             Set API-Key, Modify system_msg, Inital Instructions to the model.
+Setup:                      Setup()             Setup  config options. API-Key, system_msg, model context, debug msg
 Help:                       Help()              Display this help menu.
     "
     Write-Host -ForegroundColor DarkMagenta $command_menu
