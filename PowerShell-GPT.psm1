@@ -33,7 +33,6 @@ $Config.system_msg = "You are my helpful assistant. Please be brief." # Default 
 $Config.Debugging = '1' # Enable more verbose output for troubleshooting.
 
 
-
 # --- Functions --- 
 Function invoke-Bot { # Send current prompt and an array with messages history to API.
     param(
@@ -112,6 +111,7 @@ Function invoke-SystemMessage{ # Send System message .
         return $response
     } 
 }
+
 function Get-MultiLineInput { # Dot-escape to exit.  ".<enter> " 
     $inputLines = @()
     $read_prompt = $true
@@ -128,9 +128,9 @@ function Get-MultiLineInput { # Dot-escape to exit.  ".<enter> "
     }
     return $inputLines -join "`n"
 }
+
 Function Read-Menu {
-    #([array]$Options,  $PromptText = $False )
-    param(
+     param(
         [parameter()][array]$Options,
         [parameter()][string]$PromptText
     )
@@ -153,16 +153,36 @@ Function Read-Menu {
         
         If($Choice -le 0) { # returns 0 if chosen for cancel.
             $Check = $true
-            return [int]0
+            return $false
         }
         If($Choice -le $options.Count){
             $Check = $true
-            Return $Choice
+            Return [int]$Choice - 1
         }Else{ 
             Write-Host -ForegroundColor Red "Invalid option. Please choose an option from 0 to $($options.Count)"
         }
     }  
 } # Generate a menu with array of options. returns the int of the choice made. counts from 1.
+
+Function Read-PromptYesNo{
+    param(
+        [Parameter()][string]$Question
+    )
+    $Check = $false
+    while($Check -eq $false){
+        Switch -Regex (Read-Host -Prompt "$Question `nYes/No"){
+            {'yes', 'y' -contains $_} {
+                $Check = $true
+                return $true
+            }
+            {'no', 'n' -contains $_ } {
+                $Check = $true
+                Return $False
+            }  
+            default { Write-Host "Please enter Y/N"}
+        }
+    }
+}  # Prompt for yes/no | y/n and return true/false
 
 Function Start-Chat(){
     param(
@@ -273,25 +293,7 @@ Help:                       Help()              Display this help menu.
         }
     }
 } 
-Function Read-PromptYesNo{
-    param(
-        [Parameter()][string]$Question
-    )
-    $Check = $false
-    while($Check -eq $false){
-        Switch -Regex (Read-Host -Prompt "$Question `nYes/No"){
-            {'yes', 'y' -contains $_} {
-                $Check = $true
-                return $true
-            }
-            {'no', 'n' -contains $_ } {
-                $Check = $true
-                Return $False
-            }  
-            default { Write-Host "Please enter Y/N"}
-        }
-    }
-}  # Prompt for yes/no | y/n and return true/false
+
 
 Function Set-PwshGPTConfig{
     param(
@@ -345,14 +347,12 @@ Function Set-PwshGPTConfig{
             $Global:Config.Debugging = $false
         }
 
-        Write-Host -ForegroundColor Green "Use Default Model: " -NoNewline
+        Write-Host -ForegroundColor Green "Use Default Model: $($Global:Models[0])" -NoNewline
         If(Read-PromptYesNo -Question ""){
             $Global:Config.model = $Global:Models[0]
         }else {
-            $UserChoice = Read-Menu 
-            $Global:Config.model = $Global:Models[]
-
-
+            [int]$UserChoice = Read-Menu -options $Global:Models
+            $Global:Config.model = $Global:Models[$UserChoice]
         }
 
         Write-host -ForegroundColor Cyan "
