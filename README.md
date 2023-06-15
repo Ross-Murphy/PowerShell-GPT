@@ -17,7 +17,7 @@ I did not initially find an extension for VsCode to my liking. Also I thought it
 What's Next
 ---
 There are several other PowerShell OpenAI ChatGPT API scripts out there and honestly if I had found them first I may not have started this at all, however it was fun and I like the simplicity of it all. This needs to become a proper module if it's to be distributed as a project. 
-Eventaully I would like to add some ability for the chat to interact with the shell in a limited capacity. Using the new Functions array in released in gpt-3.5-turbo-0613.
+Eventually I would like to add some ability for the chat to interact with the shell in a limited capacity. Using the new Functions array in released in gpt-3.5-turbo-0613.
 
 What's New?
 ---
@@ -80,7 +80,7 @@ How to use?
 ---
 Adding the module import command to your PowerShell Profile is handy.
 
-In PS terminal window subsititue `code` for your prefered editor.
+In PS terminal window substitute `code` for your preferred editor.
 `code $PROFILE`
 
 In this example below you can add it to your profile and use it in VsCode
