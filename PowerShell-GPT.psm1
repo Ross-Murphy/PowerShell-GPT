@@ -60,7 +60,7 @@ Function invoke-Bot { # Send current prompt and an array with messages history t
     $body = @{
         messages = $messages
         model = "$model"       
-    } | ConvertTo-Json
+    } | ConvertTo-Json -EscapeHandling EscapeNonAscii
    
     try {
         $response = Invoke-RestMethod -Uri $endpoint -Headers $headers -Method Post -Body $body 
