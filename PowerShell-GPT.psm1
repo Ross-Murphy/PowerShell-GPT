@@ -17,20 +17,22 @@ $Global:Config = [PSCustomObject] @{
     ConfigFile = ""
     Debugging = ""
 }
-# Set some defaults
-$Config.ConfigPath = Join-Path -Path $USERHOME -ChildPath '.PowerShell-GPT' # Location of config dir
-$Config.ConfigFile = Join-Path -Path $Config.ConfigPath -ChildPath 'PowerShell-GPT_config.json' # Default name of the config file.
-$Config.endpoint = 'https://api.openai.com/v1/chat/completions' # The OpenAI endpoint for chat/completions
-$Config.model = 'gpt-3.5-turbo' # Default The Large Lang Model to use.
-$Config.system_msg = "You are my helpful assistant. Please be brief." # Default system message. Can be configured during setup.
-$Config.Debugging = '1' # Enable more verbose output for troubleshooting.
-
 $Global:Models = @(
-    'gpt-3.5-turbo',
+    'gpt-3.5-turbo', # Default The Large Lang Model to use.
     'gpt-3.5-turbo-16k',
     'gpt-3.5-turbo-0613',
     'gpt-3.5-turbo-0613-16k'
 )
+
+# Set some defaults
+$Config.ConfigPath = Join-Path -Path $USERHOME -ChildPath '.PowerShell-GPT' # Location of config dir
+$Config.ConfigFile = Join-Path -Path $Config.ConfigPath -ChildPath 'PowerShell-GPT_config.json' # Default name of the config file.
+$Config.endpoint = 'https://api.openai.com/v1/chat/completions' # The OpenAI endpoint for chat/completions
+$Config.model = $Global:Models[0] # Default The Large Lang Model to use.
+$Config.system_msg = "You are my helpful assistant. Please be brief." # Default system message. Can be configured during setup.
+$Config.Debugging = '1' # Enable more verbose output for troubleshooting.
+
+
 
 # --- Functions --- 
 Function invoke-Bot { # Send current prompt and an array with messages history to API.
@@ -126,7 +128,12 @@ function Get-MultiLineInput { # Dot-escape to exit.  ".<enter> "
     }
     return $inputLines -join "`n"
 }
-Function Read-Menu ([array]$Options,  $PromptText = $False ){
+Function Read-Menu {
+    #([array]$Options,  $PromptText = $False )
+    param(
+        [parameter()][array]$Options,
+        [parameter()][string]$PromptText
+    )
     $Check = $false
     If ($PromptText){ 
         Write-Host -ForegroundColor Green "$PromptText"
@@ -338,11 +345,14 @@ Function Set-PwshGPTConfig{
             $Global:Config.Debugging = $false
         }
 
-        Write-Host -ForegroundColor Green "Enable Large Message Context: " -NoNewline
-        If(Read-PromptYesNo -Question "?"){
-            $Global:Config.Debugging = $true            
+        Write-Host -ForegroundColor Green "Use Default Model: " -NoNewline
+        If(Read-PromptYesNo -Question ""){
+            $Global:Config.model = $Global:Models[0]
         }else {
-            $Global:Config.Debugging = $false
+            $UserChoice = Read-Menu 
+            $Global:Config.model = $Global:Models[]
+
+
         }
 
         Write-host -ForegroundColor Cyan "
