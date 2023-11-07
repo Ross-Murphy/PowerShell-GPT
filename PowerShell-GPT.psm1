@@ -20,8 +20,8 @@ $Global:Config = [PSCustomObject] @{
 $Global:Models = @(
     'gpt-3.5-turbo', # Default The Large Lang Model to use.
     'gpt-3.5-turbo-16k',
-    'gpt-3.5-turbo-0613',
-    'gpt-3.5-turbo-16k-0613'
+    'gpt-4',
+    'gpt-4-32k'
 )
 
 # Set some defaults
