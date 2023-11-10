@@ -1,6 +1,6 @@
 @{
     RootModule = 'PowerShell-GPT.psm1'
-    ModuleVersion = '0.4'
+    ModuleVersion = '0.5.3'
     PowerShellVersion = '7.0'
     FunctionsToExport = 'Start-PowerShellGPTSetup,Start-Chat'
     CmdletsToExport = ''
