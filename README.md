@@ -33,13 +33,17 @@ Setup and Config Handling
 For example gpt-3.5-turbo-16k has 4 times the chat context size however prices per token are higher as well. 
 This somewhat addresses Issue: [#1](https://github.com/Ross-Murphy/PowerShell-GPT/issues/1) Where longer chats or large conversational context causing an error. 
 
-- Add Debugging option to Global Config . The ability to turn on extra messages like debugging that will show token count and other verbose output. use `Setup()`
+- Add Debugging option to Global Config . The ability to turn on extra messages like debugging that will show token count and other verbose output. use `Setup()` to change setup options
 
 Added new menu command aliases
-- `Q()` for save and quit. Now you can drop back to the shell and then when back in chat import the save with `I()`
-- `M()` shorthand for `Multi()` Multiline input mode.
+- `Q()` for save and quit. Now you can drop back to the shell and then when back in chat import the saved chat with `I()` and pick up where you left off with history context.
+
+- `M()` shorthand for `Multi()` Multiline input mode. Default input mode is press \<enter> to send. However if you want send multiple lines, like pasting in some code to analyze use M() to activate multiline mode. Put a period on a line by itself to send, like this:
+
+    . \<enter>
+
 ---
-Bugs Fixed
+Improvements and Bugs Fixed
 
 v0.5.3
 
