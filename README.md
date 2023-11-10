@@ -158,4 +158,6 @@ The setup creates a configuration directory in user home dir called `.PowerShell
 
 License
 ---
-MIT
+'Copyright (c) 2023 Ross Murphy - MIT License'
+
+TLDR. - A short, permissive software license. Basically, you can do whatever you want as long as you include the original copyright and license notice in any copy of the software/source. 
