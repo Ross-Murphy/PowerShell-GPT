@@ -21,30 +21,12 @@ Eventually I would like to add some ability for the chat to interact with the sh
 
 What's New?
 ---
---------------
-v0.5.3
-- BugFixes 
-    - [Previous version of config file causes upgrade setup failure ](https://github.com/Ross-Murphy/PowerShell-GPT/issues/17)
-
-v0.5.2
-- Added support for OpenAI GPT-4 models 'gpt-4' & gpt-4-32k
-
-    Supported models are now
-    - 'gpt-3.5-turbo' # Default The Large Lang Model.
-    - 'gpt-3.5-turbo-16k'
-    - 'gpt-4'
-    - 'gpt-4-32k'
-
-    [See the OpenAI API diverse set of models](https://platform.openai.com/docs/models)
-
-v0.5.1
-- Various Bugfixes including 
-    - Escape Non-Ascii chars returned by API.
-
 ---
-v0.5
+v0.5.3
 ---
 Setup and Config Handling
+- Reading config file will detect version mismatch and force setup wizard.
+
 - Change Setup function to allow accepting default or current options making in quicker to change settings without more input.
 
 - Changed the setup and config process to allow changing between model with a menu.
@@ -56,13 +38,30 @@ This somewhat addresses Issue: [#1](https://github.com/Ross-Murphy/PowerShell-GP
 Added new menu command aliases
 - `Q()` for save and quit. Now you can drop back to the shell and then when back in chat import the save with `I()`
 - `M()` shorthand for `Multi()` Multiline input mode.
-
+---
 Bugs Fixed
 
-- Issue [#2](https://github.com/Ross-Murphy/PowerShell-GPT/issues/2)
+v0.5.3
+
+ - [Previous version of config file causes upgrade setup failure ](https://github.com/Ross-Murphy/PowerShell-GPT/issues/17)
+
+v0.5.2
+- Added support for OpenAI GPT-4 models 'gpt-4' & gpt-4-32k
+
+    Supported models are now
+    - 'gpt-3.5-turbo' # Default 
+    - 'gpt-3.5-turbo-16k'
+    - 'gpt-4'
+    - 'gpt-4-32k'
+
+    [See the OpenAI API diverse set of models](https://platform.openai.com/docs/models)
+
+- Typo in model selection menu causing error
+
+v0.5.1
+- Various Bugfixes 
+    - Issue [#2](https://github.com/Ross-Murphy/PowerShell-GPT/issues/2)
  Non ascii characters returned by the API would cause an error if re-submitted by the message array with out proper handling.
-
-
 --------------
 
 ## Examples
