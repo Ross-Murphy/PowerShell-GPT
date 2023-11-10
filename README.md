@@ -1,4 +1,4 @@
-# PowerShell-GPT - an OpenAI Chat for PowerShell. v0.5
+# PowerShell-GPT - an OpenAI Chat for PowerShell. v0.5.3
 A simple ChatGPT powered chat for PowerShell.
 
 https://github.com/Ross-Murphy/PowerShell-GPT
@@ -22,6 +22,26 @@ Eventually I would like to add some ability for the chat to interact with the sh
 What's New?
 ---
 --------------
+v0.5.3
+- BugFixes 
+    - [Previous version of config file causes upgrade setup failure ](https://github.com/Ross-Murphy/PowerShell-GPT/issues/17)
+
+v0.5.2
+- Added support for OpenAI GPT-4 models 'gpt-4' & gpt-4-32k
+
+    Supported models are now
+    - 'gpt-3.5-turbo' # Default The Large Lang Model.
+    - 'gpt-3.5-turbo-16k'
+    - 'gpt-4'
+    - 'gpt-4-32k'
+
+    [See the OpenAI API diverse set of models](https://platform.openai.com/docs/models)
+
+v0.5.1
+- Various Bugfixes including 
+    - Escape Non-Ascii chars returned by API.
+
+---
 v0.5
 ---
 Setup and Config Handling
