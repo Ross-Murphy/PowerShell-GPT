@@ -44,12 +44,12 @@ Added new menu command aliases
 
 ---
 Improvements and Bugs Fixed
-
+---
 v0.5.3
 
  - [Previous version of config file causes upgrade setup failure ](https://github.com/Ross-Murphy/PowerShell-GPT/issues/17)
 
-v0.5.2
+
 - Added support for OpenAI GPT-4 models 'gpt-4' & gpt-4-32k
 
     Supported models are now
@@ -62,9 +62,7 @@ v0.5.2
 
 - Typo in model selection menu causing error
 
-v0.5.1
-- Various Bugfixes 
-    - Issue [#2](https://github.com/Ross-Murphy/PowerShell-GPT/issues/2)
+- Issue [#2](https://github.com/Ross-Murphy/PowerShell-GPT/issues/2)
  Non ascii characters returned by the API would cause an error if re-submitted by the message array with out proper handling.
 --------------
 
