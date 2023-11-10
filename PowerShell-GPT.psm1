@@ -16,6 +16,7 @@ $Global:Config = [PSCustomObject] @{
     ConfigPath = ""
     ConfigFile = ""
     Debugging = ""
+    AppVersion = ""
 }
 $Global:Models = @(
     'gpt-3.5-turbo', # Default The Large Lang Model to use.
@@ -30,8 +31,8 @@ $Config.ConfigFile = Join-Path -Path $Config.ConfigPath -ChildPath 'PowerShell-G
 $Config.endpoint = 'https://api.openai.com/v1/chat/completions' # The OpenAI endpoint for chat/completions
 $Config.model = $Global:Models[0] # Default The Large Lang Model to use.
 $Config.system_msg = "You are my helpful assistant. Please be brief." # Default system message. Can be configured during setup.
-$Config.Debugging = '0' # Enable more verbose output for troubleshooting.
-
+$Config.Debugging = '0' # Enable more verbose output for troubleshooting. Token counting.
+$Config.AppVersion = '0.5.3' # Current module version
 
 # --- Functions --- 
 Function invoke-Bot { # Send current prompt and an array with messages history to API.
@@ -271,6 +272,7 @@ Help:                       Help()              Display this help menu.
                 ConfigFile : $($Global:Config.ConfigFile)
                 System_Msg : $($Global:Config.system_msg)
                 Debugging  : $($Global:Config.Debugging)
+                AppVersion : $($Global:Config.AppVersion)
             "
            }
            {'Setup()' -contains $_ } { # Setup config.
@@ -341,7 +343,11 @@ Function Set-PwshGPTConfig{
         if (-not ([string]::IsNullOrWhiteSpace($system_msg))) { 
            $Global:Config.system_msg = $system_msg  
         }
-
+        
+        # Enable Debugging
+        If (-not [bool]($LoadedConfig.PSobject.Properties.name -match "Debugging")){
+            Add-Member -force -InputObject $Global:Config -NotePropertyName Debugging -NotePropertyValue $False
+        }# Test if config has Debugging property and if not add it. #bugfix in V.0.5.3
         Write-Host -ForegroundColor Green "Enable Debug messages: " -NoNewline
         If(Read-PromptYesNo -Question "?"){
             $Global:Config.Debugging = $true            
@@ -365,6 +371,7 @@ Function Set-PwshGPTConfig{
         ConfigFile : $($Global:Config.ConfigFile)
         System_Msg : $($Global:Config.system_msg)
         Debugging  : $($Global:Config.Debugging)
+        AppVersion : $($Global:Config.AppVersion)
         "
         Write-Host -ForegroundColor Green "Write Configuration to $($Global:Config.ConfigFile) ?"
         if(Read-PromptYesNo -Question "Write config?"){
@@ -384,7 +391,21 @@ Function Read-Config(){
     }
 
     # Read config json into global:config obj
-    $Global:Config = (Get-Content $Global:Config.ConfigFile | ConvertFrom-Json )
+    #$Global:Config = (Get-Content $Global:Config.ConfigFile | ConvertFrom-Json )
+    
+    $LoadedConfig = (Get-Content $Global:Config.ConfigFile | ConvertFrom-Json )
+    
+    If( (-not [bool]($LoadedConfig.PSobject.Properties.name -match "AppVersion")) -or ($LoadedConfig.AppVersion -ne $Global:Config.AppVersion) ){
+        Write-Host -ForegroundColor DarkMagenta `
+        "AppVersion $($Global:Config.AppVersion) does not match value in config file
+         $($Global:Config.ConfigFile)
+         Running setup to upgrade config"
+         Add-Member -force -InputObject $Global:Config -NotePropertyName AppVersion -NotePropertyValue $Global:Config.AppVersion
+         Start-PowerShellGPTSetup
+    } else{
+        $Global:Config = $LoadedConfig
+    }
+
     If($null -eq $Global:Config) {
         Write-Host -ForegroundColor Red "ERROR. Config not loaded. Exiting."
         Exit 1
