@@ -21,6 +21,7 @@ $Global:Config = [PSCustomObject] @{
 $Global:Models = @(
     'gpt-4o-mini', # Default The Large Lang Model to use.
     'gpt-4',
+    'gpt-4o',
     'gpt-4-32k'
 )
 
@@ -196,7 +197,7 @@ Function Start-Chat(){
     You are now chatting with $model.  Type your chat message and hit <enter> to send. 
     Or choose a command from the menu.
 ---    
-GPT-PowerShell Version 0.5
+GPT-PowerShell Version: $($Global:Config.AppVersion)
 ==================================================================================
 Name                        Command             Description 
 ==================================================================================
