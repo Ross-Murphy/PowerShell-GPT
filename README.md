@@ -50,12 +50,12 @@ v0.5.3
  - [Previous version of config file causes upgrade setup failure ](https://github.com/Ross-Murphy/PowerShell-GPT/issues/17)
 
 
-- Added support for OpenAI GPT-4 models 'gpt-4' & gpt-4-32k
+- Added support for OpenAI GPT-4 models
 
-    Supported models are now
-    - 'gpt-3.5-turbo' # Default 
-    - 'gpt-3.5-turbo-16k'
+    Supported models are now:
+    - 'gpt-4o-mini', # Default The Large Lang Model to use.
     - 'gpt-4'
+    - 'gpt-4o'
     - 'gpt-4-32k'
 
     [See the OpenAI API diverse set of models](https://platform.openai.com/docs/models)
@@ -123,7 +123,7 @@ start-chat
     You are now chatting with gpt-3.5-turbo.  Type your chat message and hit <enter> to send.
     Or choose a command from the menu.
 ---
-GPT-PowerShell Version 0.5
+GPT-PowerShell Version: 0.5.3
 ==================================================================================
 Name                        Command             Description
 ==================================================================================
