@@ -344,8 +344,14 @@ Function Set-PwshGPTConfig{
         }
         # GET API_KEY
         if( ($Script:Config.API_KEY.Length -gt 49 ) ){
+            $apiKey = $Script:Config.API_KEY
+            $firstPart = $apiKey.Substring(0, 15)  # First 15 characters
+            $lastPart = $apiKey.Substring($apiKey.Length - 15)  # Last 15 characters
+            #$middleObfuscated = '*' * ($apiKey.Length - 24)  # Obfuscate the middle part
+            $middleObfuscated = '...***Obfuscated***...' # Obfuscate and trim the middle part
+            $displayKey = $firstPart + $middleObfuscated + $lastPart    
             Write-Host -ForegroundColor Green "Current API Key: " -NoNewline
-            Write-Host -ForegroundColor Cyan "$($Script:Config.API_KEY)"
+            Write-Host -ForegroundColor Cyan "$($displayKey)"
             Write-Host -ForegroundColor Green "Enter New API Key or press <Enter> to accept current."
         } else{
             Write-Host -ForegroundColor Green "Enter OpenAI API Key"
@@ -384,7 +390,7 @@ Function Set-PwshGPTConfig{
         }
 
         Write-host -ForegroundColor Cyan "
-        API_KEY    : $($Script:Config.API_KEY)
+        API_KEY    : $($displayKey)
         Endpoint   : $($Script:Config.endpoint)
         Model      : $($Script:Config.model)
         ConfigPath : $($Script:Config.ConfigPath)
