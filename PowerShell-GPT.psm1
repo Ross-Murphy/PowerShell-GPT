@@ -79,42 +79,42 @@ Function invoke-Bot { # Send current prompt and an array with messages history t
     return ($bot_reply |Write-Output)
 }
 
-Function invoke-SystemMessage{ # Send System message .
-    param(
-    [Parameter()][array]$messages,
-    [Parameter()][string]$content
-    )
-    $response = $false
-    $SystemMsg = New-Object -TypeName System.Collections.ArrayList
+# Function invoke-SystemMessage{ # Send System message .
+#     param(
+#     [Parameter()][array]$messages,
+#     [Parameter()][string]$content
+#     )
+#     $response = $false
+#     $SystemMsg = New-Object -TypeName System.Collections.ArrayList
     
-    if($content) { # Prepend Content system message 
-        $SystemMsg += @{
-            role="system"
-            content = "$content" 
-        }
-    }
+#     if($content) { # Prepend Content system message 
+#         $SystemMsg += @{
+#             role="system"
+#             content = "$content" 
+#         }
+#     }
    
-    foreach ($message in $messages) {
-        $SystemMsg += @{ 
-            role="system"
-            content = "$message"   
-        }
-    }
+#     foreach ($message in $messages) {
+#         $SystemMsg += @{ 
+#             role="system"
+#             content = "$message"   
+#         }
+#     }
 
-    If($SystemMsg.Count -ge 1 ){
-        $response = invoke-Bot -messages $SystemMsg # Send  $messages array
-        $SystemMsg
-    }
+#     If($SystemMsg.Count -ge 1 ){
+#         $response = invoke-Bot -messages $SystemMsg # Send  $messages array
+#         $SystemMsg
+#     }
     
-    if($response){
-        #Write-Host -ForegroundColor Green $response.content  # display the response content to the console    
-        #$messages
-        return $response.content              
-    } else {
-        if ($Global:Config.Debugging){Write-Host -ForegroundColor Yellow "Warning. API Response is false"}
-        return $response
-    } 
-}
+#     if($response){
+#         #Write-Host -ForegroundColor Green $response.content  # display the response content to the console    
+#         #$messages
+#         return $response.content              
+#     } else {
+#         if ($Global:Config.Debugging){Write-Host -ForegroundColor Yellow "Warning. API Response is false"}
+#         return $response
+#     } 
+# }
 
 function Get-MultiLineInput { # Dot-escape to exit.  ".<enter> " 
     $inputLines = @()
@@ -233,6 +233,10 @@ Help:                       Help()              Display this help menu.
                 [string]$MultiLineInput = Get-MultiLineInput
                 $response = invoke-Bot -prompt "$MultiLineInput" -messages $global:Session.Messages # Send Current prompt and $messages history
                 if($response){
+                    $global:Session.Messages += @{ 
+                        role = 'user' 
+                        content = "$MultiLineInput" 
+                    }
                     $global:Session.Messages += $response # add the response hash table to the global messages array
                     Write-Host -ForegroundColor Green $response.content  # display the response content to the console                  
                 } else {
@@ -292,6 +296,11 @@ Help:                       Help()              Display this help menu.
                 }
                 $response = invoke-Bot -prompt "$_" -messages $global:Session.Messages  # Send Current prompt and $messages history
                 if($response){
+                    # With a valid reponse we can add the prompt text to messages array.
+                    $global:Session.Messages += @{ 
+                        role = 'user' 
+                        content = "$_" 
+                    }
                     $global:Session.Messages += $response # add the response hash table to the global messages array
                     Write-Host -ForegroundColor Green $response.content  # display the response content to the console                  
                 } else {
