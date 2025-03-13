@@ -32,7 +32,7 @@ $Config.endpoint = 'https://api.openai.com/v1/chat/completions' # The OpenAI end
 $Config.model = $Global:Models[0] # Default The Large Lang Model to use.
 $Config.system_msg = "You are my helpful assistant. Please be brief." # Default system message. Can be configured during setup.
 $Config.Debugging = '0' # Enable more verbose output for troubleshooting. Token counting.
-$Config.AppVersion = '0.5.3' # Current module version
+$Config.AppVersion = '0.5.4' # Current module version
 
 # --- Functions --- 
 Function invoke-Bot { # Send current prompt and an array with messages history to API.
@@ -61,13 +61,16 @@ Function invoke-Bot { # Send current prompt and an array with messages history t
     $body = @{
         messages = $messages
         model = "$model"       
-    } | ConvertTo-Json -EscapeHandling EscapeNonAscii
+    } | ConvertTo-Json -EscapeHandling EscapeNonAscii -Depth 10
    
     try {
+        if ($Global:Config.Debugging){Write-Host -ForegroundColor Cyan "$($body)"}
         $response = Invoke-RestMethod -Uri $endpoint -Headers $headers -Method Post -Body $body 
+        if ($Global:Config.Debugging){Write-Host -ForegroundColor Cyan "$($response.content)"}
     }
     catch {
         Write-Host -ForegroundColor Red "Invoke-RestMethod - An error occurred: $($_.Exception.Message)"
+        if ($Global:Config.Debugging){Write-Host -ForegroundColor Cyan "$($body)"}
         return $false
     }
     
@@ -213,6 +216,7 @@ Help:                       Help()              Display this help menu.
     "
     Write-Host -ForegroundColor DarkMagenta $command_menu
     $Check = $false
+    ### START input loop
     while($Check -eq $false){
         if ($Global:Config.Debugging){Write-Host -ForegroundColor Yellow "Current tokens $($Session.Tokens)"}
 
