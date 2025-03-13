@@ -20,9 +20,10 @@ $Script:Config = [PSCustomObject] @{
 }
 $Script:Models = @(
     'gpt-4o-mini', # Default The Large Lang Model to use.
-    'gpt-4',
     'gpt-4o',
-    'gpt-4-32k'
+    'o1',
+    'o3-mini'
+
 )
 
 # Set some defaults
