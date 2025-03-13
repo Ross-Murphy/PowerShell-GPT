@@ -1,4 +1,4 @@
-# PowerShell-GPT - an OpenAI Chat for PowerShell. v0.5.3
+# PowerShell-GPT - an OpenAI Chat for PowerShell. v0.5.4
 A simple ChatGPT powered chat for PowerShell.
 
 https://github.com/Ross-Murphy/PowerShell-GPT
@@ -21,8 +21,27 @@ Eventually I would like to add some ability for the chat to interact with the sh
 
 What's New?
 ---
+
 ---
-v0.5.3
+New in v0.5.4
+---
+Models
+- Added support for the newest reasoning and GPT Chat modules. Prices vary. See: https://platform.openai.com/docs/models
+
+    - 'gpt-4o-mini' # Default The Large Lang Model to use. Fast, affordable small GPT model for focused tasks
+    - 'gpt-4o' # Flagship Model Fast, intelligent, flexible GPT model
+    - 'o1' # High-intelligence reasoning model
+    - 'o3-mini' # Cheaper than o1 it is Fast, flexible, intelligent reasoning model
+
+- gpt-3.5 has been replaced with gpt-4o-mini as default model as per OpenAI announcement.
+
+Setup and Config Handling
+- API key is now partially obfuscated when querying the configuration or running the setup routing to make changes.
+
+Various Bug Fixes and improvements
+
+---
+New in v0.5.3
 ---
 Setup and Config Handling
 - Reading config file will detect version mismatch and force setup wizard.
@@ -45,18 +64,22 @@ Added new menu command aliases
 ---
 Improvements and Bugs Fixed
 ---
-v0.5.3
+Fixed in v0.5.4
+
+- Resolved critical bug where OpenAI API change with adding annotationed responses introduced a bug with json depth handling.
+    This caused chats longer than a single query to fail with a json truncation warning.
+
+- Fixed chat history omitting user messages. User messages were not being appened to the visible chat history properly.
+
+- Removed use of global variables and changed to script scoped variables for cleaner sessions and better practices.
+
+Fixed in v0.5.3
 
  - [Previous version of config file causes upgrade setup failure ](https://github.com/Ross-Murphy/PowerShell-GPT/issues/17)
 
 
 - Added support for OpenAI GPT-4 models
-
-    Supported models are now:
     - 'gpt-4o-mini', # Default The Large Lang Model to use.
-    - 'gpt-4'
-    - 'gpt-4o'
-    - 'gpt-4-32k'
 
     [See the OpenAI API diverse set of models](https://platform.openai.com/docs/models)
 
