@@ -32,10 +32,6 @@
     # To start a chat session:
     Start-Chat
 
-    # To show the module help:
-    Get-Help PowerShell-GPT -Full
-    or
-    Get-Help Start-Chat -Full
 #>
 
 # Cross-platform home directory
