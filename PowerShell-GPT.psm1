@@ -33,7 +33,7 @@ $Config.endpoint = 'https://api.openai.com/v1/chat/completions' # The OpenAI end
 $Config.model = $Script:Models[0] # Default The Large Lang Model to use.
 $Config.system_msg = "You are my helpful assistant. Please be brief." # Default system message. Can be configured during setup.
 $Config.Debugging = '0' # Enable more verbose output for troubleshooting. Token counting.
-$Config.AppVersion = '0.5.4' # Current module version
+$Config.AppVersion = '0.5.5' # Current module version
 
 # --- Functions --- 
 Function invoke-Bot { # Send current prompt and an array with messages history to API.
@@ -79,43 +79,6 @@ Function invoke-Bot { # Send current prompt and an array with messages history t
     $Script:Session.Tokens = ($response.usage.total_tokens )
     return ($bot_reply |Write-Output)
 }
-
-# Function invoke-SystemMessage{ # Send System message .
-#     param(
-#     [Parameter()][array]$messages,
-#     [Parameter()][string]$content
-#     )
-#     $response = $false
-#     $SystemMsg = New-Object -TypeName System.Collections.ArrayList
-    
-#     if($content) { # Prepend Content system message 
-#         $SystemMsg += @{
-#             role="system"
-#             content = "$content" 
-#         }
-#     }
-   
-#     foreach ($message in $messages) {
-#         $SystemMsg += @{ 
-#             role="system"
-#             content = "$message"   
-#         }
-#     }
-
-#     If($SystemMsg.Count -ge 1 ){
-#         $response = invoke-Bot -messages $SystemMsg # Send  $messages array
-#         $SystemMsg
-#     }
-    
-#     if($response){
-#         #Write-Host -ForegroundColor Green $response.content  # display the response content to the console    
-#         #$messages
-#         return $response.content              
-#     } else {
-#         if ($Script:Config.Debugging){Write-Host -ForegroundColor Yellow "Warning. API Response is false"}
-#         return $response
-#     } 
-# }
 
 function Get-MultiLineInput { # Dot-escape to exit.  ".<enter> " 
     $inputLines = @()
@@ -189,47 +152,29 @@ Function Read-PromptYesNo{
     }
 }  # Prompt for yes/no | y/n and return true/false
 
-Function Start-Chat(){
+Function Start-Chat(){ # This is the main chat loop. It runs and watches input for run commands.
     param(
         [parameter()][array]$messages = $Script:Session.Messages,
         [parameter()][string]$Question = "`n" 
     )
-    $model = $Script:Config.model
-    Read-Config
 
-    $command_menu = "
-    You are now chatting with $model.  Type your chat message and hit <enter> to send. 
-    Or choose a command from the menu.
----    
-GPT-PowerShell Version: $($Script:Config.AppVersion)
-==================================================================================
-Name                        Command             Description 
-==================================================================================
-Close Chat:                 Quit() or Exit()    End chat session. Alias Q() is Save and Quit.
-Multiline input mode:       Multi() or M()      Multiline text entry mode, Use Dot-escape to exit .<enter> 
-Save/Export Current Chat:   Save() or S()       Export Contents of current chat messages to `$Env:GPT_CHAT_MESSAGES 
-Import Saved Chat:          Import() or I()     Import content of `$Env:GPT_CHAT_MESSAGES & append to current messages array.
-Reset Chat Session:         Reset()             Clear messages array. Start fresh chat.
-History:                    History()           Display Chat History. See Content of current messages array.
-Config:                     Conf()              Display Current Configuration.
-Setup:                      Setup()             Setup  config options. API-Key, system_msg, model context, debug msg
-Help:                       Help()              Display this help menu.
-    "
-    Write-Host -ForegroundColor DarkMagenta $command_menu
-    $Check = $false
+    Read-Config # Read Json Configuration.
+    Write-Host -ForegroundColor DarkMagenta (Get-CommandMenu) # Display the Command menu
+    
     ### START input loop
+    $Check = $false # When Check = $true the input loop will exit. 
     while($Check -eq $false){
         if ($Script:Config.Debugging){Write-Host -ForegroundColor Yellow "Current tokens $($Session.Tokens)"}
-
+        # We use switch cases to give the chat admin commands.
         Switch -Regex (Read-Host -Prompt "$Question"){
-            {'Quit()', 'Exit()' -contains $_ } {
+            {'Quit()','q', 'Exit()' -contains $_ } { # Exit the chat loop
                 $Check = $true
             }
-            {'Q()' -contains $_ } {
+            {'Q()' -contains $_ } { # Quit but save chat history to environment variable. 
                 $Env:GPT_CHAT_MESSAGES = $Script:Session.Messages|ConvertTo-Json
                 $Check = $true
             }
-            {'Multi()', 'M()' -contains $_ } {
+            {'Multi()', 'M()' -contains $_ } { # Enter multiline input mode.
                 Write-Host -ForegroundColor DarkMagenta "Multi Line Input. Empty line with . to end "
                 [string]$MultiLineInput = Get-MultiLineInput
                 $response = invoke-Bot -prompt "$MultiLineInput" -messages $Script:Session.Messages # Send Current prompt and $messages history
@@ -245,8 +190,8 @@ Help:                       Help()              Display this help menu.
                     Write-Host -ForegroundColor DarkYellow "Warning. API Response is false."
                 } 
             }
-            {'History()' -contains $_ } {
-                Write-Host -ForegroundColor Cyan  ( $Script:Session.Messages|ConvertTo-Json)  # write out chat history as json
+            {'History()' -contains $_ } { # write out chat history as json
+                Write-Host -ForegroundColor Cyan  ( $Script:Session.Messages|ConvertTo-Json)  
            }
             {'Save()', 'S()' -contains $_ } { # json export chat history and display it 
                  $Env:GPT_CHAT_MESSAGES = $Script:Session.Messages|ConvertTo-Json
@@ -254,7 +199,7 @@ Help:                       Help()              Display this help menu.
             }
             {'Import()', 'I()' -contains $_ } { # check $Env:GPT_CHAT_MESSAGES and see if it has an array and try to load it.
                 #$Env:GPT_CHAT_MESSAGES = $Script:Session.Messages|ConvertTo-Json
-                $import_last = ($Env:GPT_CHAT_MESSAGES | ConvertFrom-Json) # prehaps some more checks here...
+                $import_last = ($Env:GPT_CHAT_MESSAGES | ConvertFrom-Json -Depth 10) # prehaps some more checks here...
                 if ( $import_last -is [array]){
                     $Script:Session.Messages += $import_last
                 }               
@@ -265,7 +210,7 @@ Help:                       Help()              Display this help menu.
            }
            {'Reset()' -contains $_ } { # Delete Current Chat History. Start over but don't exit. You can import saved chats
                 $Script:Session.Messages = @($Script:Session.Messages[0]) # Keep only the inital system prompt
-                $response = invoke-Bot -prompt "Ready?" -messages $Script:Session.Messages # 
+                $response = invoke-Bot -prompt "Ok?" -messages $Script:Session.Messages # 
                 if($response){
                     $Script:Session.Messages += $response # add the response hash table to the global messages array
                     Write-Host -ForegroundColor Green $response.content  # display the response content to the console                  
@@ -274,42 +219,27 @@ Help:                       Help()              Display this help menu.
                 }              
            }
            {'Conf()' -contains $_ } { # Show current config
-            $apiKey = $Script:Config.API_KEY
-            $firstPart = $apiKey.Substring(0, 15)  # First 15 characters
-            $lastPart = $apiKey.Substring($apiKey.Length - 15)  # Last 15 characters
-            #$middleObfuscated = '*' * ($apiKey.Length - 24)  # Obfuscate the middle part
-            $middleObfuscated = '...***Obfuscated***...' # Obfuscate and trim the middle part
-            $displayKey = $firstPart + $middleObfuscated + $lastPart            
-            Write-Host -ForegroundColor DarkMagenta "
-                API_KEY    : $($displayKey)
-                Endpoint   : $($Script:Config.endpoint)
-                Model      : $($Script:Config.model)
-                ConfigPath : $($Script:Config.ConfigPath)
-                ConfigFile : $($Script:Config.ConfigFile)
-                System_Msg : $($Script:Config.system_msg)
-                Debugging  : $($Script:Config.Debugging)
-                AppVersion : $($Script:Config.AppVersion)
-            "
+             Write-Host -ForegroundColor DarkMagenta "$(Get-Configuration)"
            }
            {'Setup()' -contains $_ } { # Setup config.
             Start-PowerShellGPTSetup
            }
 
            {'Help()' -contains $_ } { # Show command menu options
-            Write-Host -ForegroundColor DarkMagenta $command_menu
+            Write-Host -ForegroundColor DarkMagenta (Get-CommandMenu)
            }
-            default { 
-                if ($_ -eq ''){ # Do not send a blank line to our butler
+            default { # Regular single line chat input mode
+                if ($_ -eq ''){ # Do not send a blank line to our butler. if someone just hits enter, send nothing.
                     continue
                 }
                 $response = invoke-Bot -prompt "$_" -messages $Script:Session.Messages  # Send Current prompt and $messages history
                 if($response){
-                    # With a valid reponse we can add the prompt text to messages array.
-                    $Script:Session.Messages += @{ 
+                    # With a valid reponse
+                    $Script:Session.Messages += @{ # Format the user message and add to the message aray.
                         role = 'user' 
                         content = "$_" 
                     }
-                    $Script:Session.Messages += $response # add the response hash table to the global messages array
+                    $Script:Session.Messages += $response # add the assistant response hash table to the global messages array
                     Write-Host -ForegroundColor Green $response.content  # display the response content to the console                  
                 } else {
                     Write-Host -ForegroundColor DarkYellow "Warning. API Response is false."
@@ -459,5 +389,60 @@ Function Read-Config(){
         content = "$($Script:Config.system_msg)"
     }
 
+}
+
+Function Get-ObfuscatedKey{
+    param(
+        [parameter()][string]$apiKey =  $Script:Config.API_KEY 
+    )
+
+    $firstPart = $apiKey.Substring(0, 15)  # First 15 characters
+    $lastPart = $apiKey.Substring($apiKey.Length - 15)  # Last 15 characters
+    #$middleObfuscated = '*' * ($apiKey.Length - 24)  # Obfuscate the middle part
+    $middleObfuscated = '...***Obfuscated***...' # Obfuscate and trim the middle part
+    $displayKey = $firstPart + $middleObfuscated + $lastPart
+    return $displayKey
+}
+
+Function Get-Configuration{
+      [string]$ObfuscatedKey = Get-ObfuscatedKey
+    [string]$output =  "
+    API_KEY    : $($ObfuscatedKey)
+    Endpoint   : $($Script:Config.endpoint)
+    Model      : $($Script:Config.model)
+    ConfigPath : $($Script:Config.ConfigPath)
+    ConfigFile : $($Script:Config.ConfigFile)
+    System_Msg : $($Script:Config.system_msg)
+    Debugging  : $($Script:Config.Debugging)
+    AppVersion : $($Script:Config.AppVersion)
+"
+
+    return $output
+}
+
+Function Get-CommandMenu{
+    <# 
+        Define the command menu as a string
+    #>    
+
+    $command_menu = "
+    You are now chatting with $($Script:Config.model).  Type your chat message and hit <enter> to send. 
+    Or choose a command from the menu.
+---    
+GPT-PowerShell Version: $($Script:Config.AppVersion)
+==================================================================================
+Name                        Command             Description 
+==================================================================================
+Close Chat:                 Quit() or Exit()    End chat session. Alias Q is quick exit. Alias Q() is Save and Quit.
+Multiline input mode:       Multi() or M()      Multiline text entry mode, Use Dot-escape to exit .<enter> 
+Save/Export Current Chat:   Save() or S()       Export Contents of current chat messages to `$Env:GPT_CHAT_MESSAGES 
+Import Saved Chat:          Import() or I()     Import content of `$Env:GPT_CHAT_MESSAGES & append to current messages array.
+Reset Chat Session:         Reset()             Clear messages array. Start fresh chat.
+History:                    History()           Display Chat History. See Content of current messages array.
+Config:                     Conf()              Display Current Configuration.
+Setup:                      Setup()             Setup  config options. API-Key, system_msg, model context, debug msg
+Help:                       Help()              Display this help menu.
+    "
+    return $command_menu
 }
 
