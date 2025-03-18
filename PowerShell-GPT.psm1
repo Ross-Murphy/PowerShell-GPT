@@ -23,8 +23,8 @@
     The default model to use for generating responses. Can be configured to use different model types provided by OpenAI.
 
 .NOTES
-    Author: Ross Murphy.
-    License: MIT License.
+    Author: Ross Murphy
+    License: MIT License
     GitHub: https://github.com/Ross-Murphy/PowerShell-GPT
     OpenAI API Documentation: https://platform.openai.com/docs/api-reference
 
@@ -34,6 +34,8 @@
 
     # To show the module help:
     Get-Help PowerShell-GPT -Full
+    or
+    Get-Help Start-Chat -Full
 #>
 
 # Cross-platform home directory
