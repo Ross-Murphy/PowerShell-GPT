@@ -1,8 +1,40 @@
-# PowerShell-GPT - an OpenAI Chat for PowerShell.
-# https://github.com/Ross-Murphy/PowerShell-GPT
-# MIT License
-# OpenAI API Docs: https://platform.openai.com/docs/api-reference
-#
+<#
+.SYNOPSIS
+    PowerShell-GPT is a module for interacting with OpenAI's GPT models directly from PowerShell.
+
+.DESCRIPTION
+    This module allows users to communicate with OpenAI's GPT models through the chat completions API.
+    It provides a command-line interface for users to send prompts, receive responses, 
+    and manage conversation history. The module supports multiple chat functions and configurable options.
+
+    Key features include:
+    - Sending prompts to the OpenAI API and receiving text responses.
+    - Multi-line input mode for complex queries.
+    - History management for saving and loading chat sessions.
+    - Easy configuration setup for API keys, model selection, and debugging options.
+
+.PARAMETER API_KEY
+    The API key used for authentication with the OpenAI API. This must be set for the module to function.
+
+.PARAMETER ENDPOINT
+    The URL endpoint for accessing the OpenAI chat completions API. Defaults to 'https://api.openai.com/v1/chat/completions'.
+
+.PARAMETER MODEL
+    The default model to use for generating responses. Can be configured to use different model types provided by OpenAI.
+
+.NOTES
+    Author: Ross Murphy.
+    License: MIT License.
+    GitHub: https://github.com/Ross-Murphy/PowerShell-GPT
+    OpenAI API Documentation: https://platform.openai.com/docs/api-reference
+
+.EXAMPLES
+    # To start a chat session:
+    Start-Chat
+
+    # To show the module help:
+    Get-Help PowerShell-GPT -Full
+#>
 
 # Cross-platform home directory
 $Script:USERHOME = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::UserProfile)
