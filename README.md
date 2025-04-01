@@ -1,4 +1,4 @@
-# PowerShell-GPT - an OpenAI Chat for PowerShell. v0.5.4
+# PowerShell-GPT - an OpenAI Chat for PowerShell. v0.5.5
 A simple ChatGPT powered chat for PowerShell.
 
 https://github.com/Ross-Murphy/PowerShell-GPT
@@ -21,6 +21,11 @@ Eventually I would like to add some ability for the chat to interact with the sh
 
 What's New?
 ---
+
+---
+New in v0.5.5
+---
+- Mostly code clean up in prep for adding OpenAI functions in v0.6
 
 ---
 New in v0.5.4
